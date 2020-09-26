@@ -32,7 +32,7 @@ std::string HelpMessageCli()
     strUsage += HelpMessageOpt("-datadir=<dir>", _("Specify data directory"));
     AppendParamsHelpMessages(strUsage);
     strUsage += HelpMessageOpt("-rpcconnect=<ip>", strprintf(_("Send commands to node running on <ip> (default: %s)"), DEFAULT_RPCCONNECT));
-    strUsage += HelpMessageOpt("-rpcport=<port>", strprintf(_("Connect to JSON-RPC on <port> (default: %u or testnet: %u)"), 8232, 18232));
+    strUsage += HelpMessageOpt("-rpcport=<port>", strprintf(_("Connect to JSON-RPC on <port> (default: %u or testnet: %u)"), RC_COIN_RPC_PORT_MAINNET, RC_COIN_RPC_PORT_TESTNET));
     strUsage += HelpMessageOpt("-rpcwait", _("Wait for RPC server to start"));
     strUsage += HelpMessageOpt("-rpcuser=<user>", _("Username for JSON-RPC connections"));
     strUsage += HelpMessageOpt("-rpcpassword=<pw>", _("Password for JSON-RPC connections"));
@@ -76,12 +76,12 @@ static int AppInitRPC(int argc, char* argv[])
     //
     ParseParameters(argc, argv);
     if (argc<2 || mapArgs.count("-?") || mapArgs.count("-h") || mapArgs.count("-help") || mapArgs.count("-version")) {
-        std::string strUsage = _("Zcash RPC client version") + " " + FormatFullVersion() + "\n" + PrivacyInfo();
+        std::string strUsage = COIN_NAME + _(" RPC client version") + " " + FormatFullVersion() + "\n" + PrivacyInfo();
         if (!mapArgs.count("-version")) {
             strUsage += "\n" + _("Usage:") + "\n" +
-                  "  zcash-cli [options] <command> [params]  " + _("Send command to Zcash") + "\n" +
-                  "  zcash-cli [options] help                " + _("List commands") + "\n" +
-                  "  zcash-cli [options] help <command>      " + _("Get help for a command") + "\n";
+                  "  " + COIN_CLI_EXECUTABLE + " [options] <command> [params]  " + _("Send command to ") + COIN_NAME + "\n" +
+                  "  " + COIN_CLI_EXECUTABLE + " [options] help                " + _("List commands") + "\n" +
+                  "  " + COIN_CLI_EXECUTABLE + " [options] help <command>      " + _("Get help for a command") + "\n";
 
             strUsage += "\n" + HelpMessageCli();
         } else {
