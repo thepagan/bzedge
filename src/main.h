@@ -45,6 +45,7 @@
 
 class CBlockIndex;
 class CBlockTreeDB;
+class CSporkDB;
 class CBloomFilter;
 class CChainParams;
 class CInv;
@@ -87,6 +88,7 @@ static const int MAX_SCRIPTCHECK_THREADS = 16;
 static const int DEFAULT_SCRIPTCHECK_THREADS = 0;
 /** Number of blocks that can be requested at any given time from a single peer. */
 static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 16;
+//static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 64;
 /** Timeout in seconds during which a peer must stall block download progress before being disconnected. */
 static const unsigned int BLOCK_STALLING_TIMEOUT = 2;
 /** Number of headers sent in one getheaders result. We rely on the assumption that if a peer sends
@@ -178,7 +180,8 @@ extern CAmount maxTxFee;
 extern bool fAlerts;
 /** If the tip is older than this (in seconds), the node is considered to be in initial block download. */
 extern int64_t nMaxTipAge;
-
+extern std::map<uint256, int64_t> mapRejectedBlocks;
+extern std::map<COutPoint, COutPoint> mapInvalidOutPoints;
 /** Best header we've seen so far (used for getheaders queries' starting points). */
 extern CBlockIndex *pindexBestHeader;
 
@@ -263,6 +266,7 @@ std::pair<std::string, int64_t> GetWarnings(const std::string& strFor);
 bool GetTransaction(const uint256& hash, CTransaction& tx, const Consensus::Params& params, uint256& hashBlock, bool fAllowSlow = false, CBlockIndex* blockIndex = nullptr);
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams, const CBlock* pblock = NULL);
+bool DisconnectBlocksAndReprocess(int blocks);
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams);
 
 /**
@@ -281,7 +285,7 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams);
  * @param[out]   setFilesToPrune   The set of file indices that can be unlinked will be returned
  */
 void FindFilesToPrune(std::set<int>& setFilesToPrune, uint64_t nPruneAfterHeight);
-
+int64_t GetMasternodePayment(int nHeight, int64_t blockValue);
 /**
  *  Actually unlink the specified files
  */
@@ -298,10 +302,20 @@ void FlushStateToDisk();
 /** Prune block files and flush state to disk. */
 void PruneAndFlush();
 
-/** (try to) add transaction to memory pool **/
-bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
-                        bool* pfMissingInputs, bool fRejectAbsurdFee=false);
+int ActiveProtocol();
 
+/** (try to) add transaction to memory pool **/
+bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree, bool* pfMissingInputs, bool fRejectAbsurdFee=false, bool ignoreFees = false);
+
+bool AcceptableInputs(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fRejectInsaneFee = false, bool isDSTX = false);
+
+int GetInputAge(CTxIn& vin);
+int GetInputAgeIX(uint256 nTXHash, CTxIn& vin);
+bool GetCoinAge(const CTransaction& tx, unsigned int nTxTime, uint64_t& nCoinAge);
+int GetIXConfirmations(uint256 nTXHash);
+
+/** Find block at height in a fork **/
+const CBlockIndex* FindBlockAtHeight(int nHeight, const CBlockIndex* pIndex);
 
 struct CNodeStateStats {
     int nMisbehavior;
@@ -393,7 +407,8 @@ bool IsExpiringSoonTx(const CTransaction &tx, int nNextBlockHeight);
  */
 bool CheckFinalTx(const CTransaction &tx, int flags = -1);
 
-/**
+bool ValidOutPoint(const COutPoint out, int nHeight);
+/** 
  * Closure representing one script verification
  * Note that this stores references to the spending transaction
  */
@@ -520,6 +535,9 @@ extern CCoinsViewCache *pcoinsTip;
 
 /** Global variable that points to the active block tree (protected by cs_main) */
 extern CBlockTreeDB *pblocktree;
+
+/** Global variable that points to the spork database (protected by cs_main) */
+extern CSporkDB* pSporkDB;
 
 /**
  * Return the spend height, which is one more than the inputs.GetBestBlock().

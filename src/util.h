@@ -31,6 +31,14 @@
 #include <boost/signals2/signal.hpp>
 #include <boost/thread/exceptions.hpp>
 
+extern bool fEnableSwiftTX;
+extern int nSwiftTXDepth;
+extern bool fMasterNode;
+extern bool fLiteMode;
+extern int nZcashSendRounds;
+extern int nAnonymizeZcashAmount;
+extern int nLiquidityProvider;
+
 /** Signals for translation. */
 class CTranslationInterface
 {
@@ -38,6 +46,14 @@ public:
     /** Translate a message to the native language of the user. */
     boost::signals2::signal<std::string (const char* psz)> Translate;
 };
+
+//Dash only features
+extern bool fEnableZcashSend;
+extern int64_t enforceMasternodePaymentsTime;
+extern std::string strMasterNodeAddr;
+
+extern std::vector<int64_t> obfuScationDenominations;
+extern std::string strBudgetMode;
 
 extern std::map<std::string, std::string> mapArgs;
 extern std::map<std::string, std::vector<std::string> > mapMultiArgs;
@@ -84,6 +100,7 @@ fs::path GetDefaultDataDir();
 const fs::path &GetDataDir(bool fNetSpecific = true);
 void ClearDatadirCache();
 fs::path GetConfigFile(const std::string& confPath);
+fs::path GetMasternodeConfigFile();
 #ifndef WIN32
 fs::path GetPidFile();
 void CreatePidFile(const fs::path &path, pid_t pid);
@@ -191,7 +208,7 @@ void RenameThread(const char* name);
  */
 template <typename Callable> void TraceThread(const char* name,  Callable func)
 {
-    std::string s = strprintf("zcash-%s", name);
+    std::string s = strprintf("%s-%s", RC_COIN_NICKNAME, name);
     RenameThread(s.c_str());
     try
     {

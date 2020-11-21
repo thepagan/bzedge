@@ -39,25 +39,25 @@
 #define DO_STRINGIZE(X) #X
 
 //! Copyright string used in Windows .rc files
-#define COPYRIGHT_STR "2009-" STRINGIZE(COPYRIGHT_YEAR) " The Bitcoin Core Developers and The Zcash developers"
+#define COPYRIGHT_STR "2009-" STRINGIZE(COPYRIGHT_YEAR) " The Bitcoin Core Developers and The Zcash developers and The BZEdge developers"
 
 /**
  * Additional macros, to ease the pain of (fork | rebase) rebranding
  */
-#define RC_COIN_NAME "Zcash"
-#define RC_COIN_NICKNAME "zcash"
-#define RC_COIN_CLIENT_NAME "MagicBean"
-#define RC_COIN_DAEMON_EXECUTABLE "zcashd"
-#define RC_COIN_CLI_EXECUTABLE "zcash-cli"
-#define RC_COIN_TX_EXECUTABLE "zcash-tx" 
+#define RC_COIN_NAME "BZEdge"
+#define RC_COIN_NICKNAME "bzedgev4"
+#define RC_COIN_CLIENT_NAME "BZShares"
+#define RC_COIN_DAEMON_EXECUTABLE "bzedged"
+#define RC_COIN_CLI_EXECUTABLE "bzedge-cli"
+#define RC_COIN_TX_EXECUTABLE "bzedge-tx" 
 #define RC_COIN_WALLET_FILENAME "wallet.dat"
 #define RC_COIN_RPC_PORT_MAINNET 8232
 #define RC_COIN_RPC_PORT_TESTNET 18232
 #define RC_COIN_RPC_PORT_REGTEST 18232
-#define RC_COIN_CURRENCY_UNIT "ZEC"
-#define RC_COIN_MINOR_CURRENCY_UNIT "zatoshis"
+#define RC_COIN_CURRENCY_UNIT "BZE"
+#define RC_COIN_MINOR_CURRENCY_UNIT "bzetoshis"
 #define RC_APPROX_RELEASE_HEIGHT 957287
-#define RC_MAX_OUTBOUND_CONNECTIONS 8
+#define RC_MAX_OUTBOUND_CONNECTIONS 32
 
 
 /**

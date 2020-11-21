@@ -11,7 +11,6 @@
 #include "amount.h"
 #include "chainparams.h"
 #include "consensus/consensus.h"
-#include "consensus/funding.h"
 #include "consensus/upgrades.h"
 #include "consensus/validation.h"
 #ifdef ENABLE_MINING
@@ -182,34 +181,6 @@ public:
     CAmount SetFoundersRewardAndGetMinerValue(void* ctx) const {
         auto block_subsidy = GetBlockSubsidy(nHeight, chainparams.GetConsensus());
         auto miner_reward = block_subsidy; // founders' reward or funding stream amounts will be subtracted below
-
-        if (nHeight > 0) {
-            if (chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_CANOPY)) {
-                auto fundingStreamElements = Consensus::GetActiveFundingStreamElements(
-                    nHeight,
-                    block_subsidy,
-                    chainparams.GetConsensus());
-
-                for (Consensus::FundingStreamElement fselem : fundingStreamElements) {
-                    miner_reward -= fselem.second;
-                    bool added = boost::apply_visitor(AddFundingStreamValueToTx(mtx, ctx, fselem.second, GetZip212Flag()), fselem.first);
-                    if (!added) {
-                        librustzcash_sapling_proving_ctx_free(ctx);
-                        throw new std::runtime_error("Failed to add funding stream output.");
-                    }
-                }
-            } else if (nHeight <= chainparams.GetConsensus().GetLastFoundersRewardBlockHeight(nHeight)) {
-                // Founders reward is 20% of the block subsidy
-                auto vFoundersReward = miner_reward / 5;
-                // Take some reward away from us
-                miner_reward -= vFoundersReward;
-                // And give it to the founders
-                mtx.vout.push_back(CTxOut(vFoundersReward, chainparams.GetFoundersRewardScriptAtHeight(nHeight)));
-            } else {
-                // Founders reward ends without replacement if Canopy is not activated by the
-                // last Founders' Reward block height + 1.
-            }
-        }
 
         return miner_reward + nFees;
     }

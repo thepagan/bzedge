@@ -100,6 +100,24 @@ using namespace std;
 const char * const BITCOIN_CONF_FILENAME = COIN_CONF_FILENAME.c_str();
 const char * const BITCOIN_PID_FILENAME = COIN_PID_FILENAME.c_str();
 
+// SwiftX
+bool fEnableSwiftTX = true;
+int nSwiftTXDepth = 5;
+bool fMasterNode = false;
+string strMasterNodePrivKey = "";
+string strMasterNodeAddr = "";
+bool fLiteMode = false;
+int nZcashSendRounds = 10;
+int nAnonymizeZcashAmount = 1000;
+int nLiquidityProvider = 0;
+/** Spork enforcement enabled time */
+int64_t enforceMasternodePaymentsTime = 4085657524;
+bool fSucessfullyLoaded = false;
+bool fEnableZcashSend = false;
+/** All denominations used by obfuscation */
+std::vector<int64_t> obfuScationDenominations;
+string strBudgetMode = "";
+
 map<string, string> mapArgs;
 map<string, vector<string> > mapMultiArgs;
 bool fDebug = false;
@@ -383,6 +401,13 @@ fs::path GetConfigFile(const std::string& confPath)
     if (!pathConfigFile.is_complete())
         pathConfigFile = GetDataDir(false) / pathConfigFile;
 
+    return pathConfigFile;
+}
+
+fs::path  GetMasternodeConfigFile()
+{
+    fs::path pathConfigFile(GetArg("-mnconf", "masternode.conf"));
+    if (!pathConfigFile.is_complete()) pathConfigFile = GetDataDir(false) / pathConfigFile;
     return pathConfigFile;
 }
 

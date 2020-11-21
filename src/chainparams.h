@@ -23,6 +23,19 @@ struct SeedSpec6 {
     uint16_t port;
 };
 
+struct EHparameters {
+    unsigned char n;
+    unsigned char k;
+    unsigned short int nSolSize;
+};
+
+//EH sol size = (pow(2, k) * ((n/(k+1))+1)) / 8;
+static const EHparameters eh200_9 = {200,9,1344};
+static const EHparameters eh144_5 = {144,5,100};
+static const EHparameters eh96_5 = {96,5,68};
+static const EHparameters eh48_5 = {48,5,36};
+static const unsigned int MAX_EH_PARAM_LIST_LEN = 2;
+
 typedef std::map<int, uint256> MapCheckpoints;
 
 struct CCheckpointData {
@@ -69,6 +82,19 @@ public:
     /** Policy: Filter transactions that do not match well-defined patterns */
     bool RequireStandard() const { return fRequireStandard; }
     int64_t PruneAfterHeight() const { return nPruneAfterHeight; }
+    
+    EHparameters eh_epoch_1_params() const { return eh_epoch_1; }
+    EHparameters eh_epoch_2_params() const { return eh_epoch_2; }
+    unsigned long eh_epoch_1_end() const { return eh_epoch_1_endblock; }
+    unsigned long eh_epoch_2_start() const { return eh_epoch_2_startblock; }
+    
+    uint32_t get_bze_pers_start() const { return bze_pers_start_blocktime; }
+        
+    unsigned int EquihashN() const { return consensus.nEquihashN; }
+    unsigned int EquihashK() const { return consensus.nEquihashK; }
+    
+    int MasternodeCountDrift() const { return nMasternodeCountDrift; }
+
     std::string CurrencyUnits() const { return strCurrencyUnits; }
     uint32_t BIP44CoinType() const { return bip44CoinType; }
     /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
@@ -86,12 +112,18 @@ public:
     }
     const std::vector<SeedSpec6>& FixedSeeds() const { return vFixedSeeds; }
     const CCheckpointData& Checkpoints() const { return checkpointData; }
-    /** Return the founder's reward address and script for a given block height */
-    std::string GetFoundersRewardAddressAtHeight(int height) const;
-    CScript GetFoundersRewardScriptAtHeight(int height) const;
-    std::string GetFoundersRewardAddressAtIndex(int i) const;
+    int PoolMaxTransactions() const { return nPoolMaxTransactions; }
+
+    std::string SporkKey() const { return strSporkKey; }
+    std::string ObfuscationPoolDummyAddress() const { return strObfuscationPoolDummyAddress; }
+    int64_t StartMasternodePayments() const { return nStartMasternodePayments; }
+    int64_t Budget_Fee_Confirmations() const { return nBudget_Fee_Confirmations; }
+
     /** Enforce coinbase consensus rule in regtest mode */
     void SetRegTestCoinbaseMustBeShielded() { consensus.fCoinbaseMustBeShielded = true; }
+    int GetNewTimeRule() const { return newTimeRule; }
+    int GetMasternodeProtectionBlock() const { return masternodeProtectionBlock; }
+    int GetMasternodeCollateral() const { return masternodeCollateral; }
 protected:
     CChainParams() {}
 
@@ -101,6 +133,13 @@ protected:
     std::vector<unsigned char> vAlertPubKey;
     int nDefaultPort = 0;
     uint64_t nPruneAfterHeight = 0;
+    EHparameters eh_epoch_1 = eh200_9;
+    EHparameters eh_epoch_2 = eh144_5;
+    unsigned long eh_epoch_1_endblock = 150000;
+    unsigned long eh_epoch_2_startblock = 140000;
+    
+    uint32_t bze_pers_start_blocktime;
+    
     std::vector<CDNSSeedData> vSeeds;
     CBaseKeyConstants keyConstants;
     std::string strNetworkID;
@@ -113,9 +152,16 @@ protected:
     bool fRequireStandard = false;
     bool fMineBlocksOnDemand = false;
     bool fTestnetToBeDeprecatedFieldRPC = false;
+    int nMasternodeCountDrift;
+    int nPoolMaxTransactions;
+    std::string strSporkKey;
+    std::string strObfuscationPoolDummyAddress;
+    int64_t nStartMasternodePayments;
+    int64_t nBudget_Fee_Confirmations;
     CCheckpointData checkpointData;
-    std::vector<std::string> vFoundersRewardAddress;
-
+    int newTimeRule = 2000000000; //Will remain at this value if not otherwise defined in chain class.
+    int masternodeProtectionBlock;
+    int masternodeCollateral;
     CAmount nSproutValuePoolCheckpointHeight = 0;
     CAmount nSproutValuePoolCheckpointBalance = 0;
     uint256 hashSproutValuePoolCheckpointBlock;
@@ -146,9 +192,6 @@ void UpdateNetworkUpgradeParameters(Consensus::UpgradeIndex idx, int nActivation
 
 void UpdateRegtestPow(int64_t nPowMaxAdjustDown, int64_t nPowMaxAdjustUp, uint256 powLimit);
 
-/**
- * Allows modifying the regtest funding stream parameters.
- */
-void UpdateFundingStreamParameters(Consensus::FundingStreamIndex idx, Consensus::FundingStream fs);
+int validEHparameterList(EHparameters *ehparams, unsigned long blockheight, const CChainParams& params);
 
 #endif // BITCOIN_CHAINPARAMS_H

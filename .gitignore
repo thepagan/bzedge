@@ -2,10 +2,10 @@
 *.deb
 *.exe
 src/bitcoin
-src/zcashd
-src/zcash-cli
-src/zcash-gtest
-src/zcash-tx
+src/bzedged
+src/bzedge-cli
+src/bzedge-gtest
+src/bzedge-tx
 src/test/test_bitcoin
 zcutil/bin/
 
@@ -94,7 +94,7 @@ build
 *.gcda
 /*.info
 test_bitcoin.coverage/
-zcash-gtest.coverage/
+bzedge-gtest.coverage/
 total.coverage/
 coverage_percent.txt
 afl-temp

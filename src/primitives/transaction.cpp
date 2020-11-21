@@ -9,6 +9,8 @@
 #include "tinyformat.h"
 #include "utilstrencodings.h"
 
+#include "key_io.h"
+
 JSDescription::JSDescription(
     const Ed25519VerificationKey& joinSplitPubKey,
     const uint256& anchor,
@@ -81,6 +83,16 @@ std::string COutPoint::ToString() const
     return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0,10), n);
 }
 
+std::string COutPoint::ToStringShort() const
+{
+    return strprintf("%s-%u", hash.ToString().substr(0,64), n);
+}
+
+uint256 COutPoint::GetHash()
+{
+    return Hash(BEGIN(hash), END(hash), BEGIN(n), END(n));
+}
+
 std::string SaplingOutPoint::ToString() const
 {
     return strprintf("SaplingOutPoint(%s, %u)", hash.ToString().substr(0, 10), n);
@@ -119,6 +131,7 @@ CTxOut::CTxOut(const CAmount& nValueIn, CScript scriptPubKeyIn)
 {
     nValue = nValueIn;
     scriptPubKey = scriptPubKeyIn;
+    nRounds = -10;
 }
 
 uint256 CTxOut::GetHash() const
@@ -128,7 +141,10 @@ uint256 CTxOut::GetHash() const
 
 std::string CTxOut::ToString() const
 {
-    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN, nValue % COIN, HexStr(scriptPubKey).substr(0, 30));
+    CTxDestination address1;
+    ExtractDestination(scriptPubKey, address1);
+    KeyIO keyIO(Params());
+    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s, address=%s)", nValue / COIN, nValue % COIN, HexStr(scriptPubKey).substr(0, 30), keyIO.EncodeDestination(address1));
 }
 
 CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::SPROUT_MIN_CURRENT_VERSION), fOverwintered(false), nVersionGroupId(0), nExpiryHeight(0), nLockTime(0), valueBalance(0) {}
