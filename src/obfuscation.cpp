@@ -21,7 +21,6 @@
 
 #include <algorithm>
 #include <boost/assign/list_of.hpp>
-#include <openssl/rand.h>
 
 #include "key_io.h"
 
