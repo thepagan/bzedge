@@ -3752,11 +3752,18 @@ CAmount CWallet::GetImmatureWatchOnlyBalance() const
     return nTotal;
 }
 
-/**
- * populate vCoins with vector of available COutputs.
- */
-void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const CCoinControl *coinControl, bool fIncludeZeroValue, bool fIncludeCoinBase, AvailableCoinsType coin_type, bool useIX) const
+void CWallet::AvailableCoins(vector<COutput>& vCoins,
+                             bool fOnlyConfirmed,
+                             const CCoinControl *coinControl,
+                             bool fIncludeZeroValue,
+                             bool fIncludeCoinBase,
+                             bool fOnlySpendable,
+                             int nMinDepth,
+                             std::set<CTxDestination>* onlyFilterByDests,
+                             AvailableCoinsType coin_type,
+                             bool useIX) const
 {
+    assert(nMinDepth >= 0);
     vCoins.clear();
 
     {
@@ -3776,11 +3783,17 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
             if (pcoin->IsCoinBase() && !fIncludeCoinBase)
                 continue;
 
-            if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0)
+            bool isCoinbase = pcoin->IsCoinBase();
+            if (isCoinbase && pcoin->GetBlocksToMaturity() > 0)
                 continue;
 
             int nDepth = pcoin->GetDepthInMainChain();
             if (useIX && nDepth < 6)
+            {
+                continue;
+            }
+
+            if (!useIX && nDepth < nMinDepth)
             {
                 continue;
             }
@@ -3803,11 +3816,27 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
 
                 if(!found) continue;
 
-                isminetype mine = IsMine(pcoin->vout[i]);
+                const auto& output = pcoin->vout[i];
+                isminetype mine = IsMine(output);
+
+                bool isSpendable = ((mine & ISMINE_SPENDABLE) != ISMINE_NO) ||
+                                    (coinControl && coinControl->fAllowWatchOnly && (mine & ISMINE_WATCH_SOLVABLE) != ISMINE_NO);
+
+                if (fOnlySpendable && !isSpendable)
+                    continue;
+
+                // Filter by specific destinations if needed
+                if (onlyFilterByDests && !onlyFilterByDests->empty()) {
+                    CTxDestination address;
+                    if (!ExtractDestination(output.scriptPubKey, address) || onlyFilterByDests->count(address) == 0) {
+                        continue;
+                    }
+                }
+
                 if (!(IsSpent(wtxid, i)) && mine != ISMINE_NO && coin_type != ONLY_10000 &&
                     !IsLockedCoin((*it).first, i) && (pcoin->vout[i].nValue > 0 || fIncludeZeroValue) &&
                     (!coinControl || !coinControl->HasSelected() || coinControl->fAllowOtherInputs || coinControl->IsSelected((*it).first, i)))
-                        vCoins.push_back(COutput(pcoin, i, nDepth, (mine & ISMINE_SPENDABLE) != ISMINE_NO));
+                        vCoins.push_back(COutput(pcoin, i, nDepth, isSpendable, isCoinbase));
             }
         }
     }

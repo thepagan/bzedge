@@ -190,7 +190,11 @@ void SelectParams(const std::string& chain);
  */
 void UpdateNetworkUpgradeParameters(Consensus::UpgradeIndex idx, int nActivationHeight);
 
-void UpdateRegtestPow(int64_t nPowMaxAdjustDown, int64_t nPowMaxAdjustUp, uint256 powLimit);
+void UpdateRegtestPow(
+    int64_t nPowMaxAdjustDown,
+    int64_t nPowMaxAdjustUp,
+    uint256 powLimit,
+    bool noRetargeting);
 
 int validEHparameterList(EHparameters *ehparams, unsigned long blockheight, const CChainParams& params);
 
