@@ -594,7 +594,11 @@ public:
         consensus.vUpgrades[idx].nActivationHeight = nActivationHeight;
     }
 
-    void UpdateRegtestPow(int64_t nPowMaxAdjustDown, int64_t nPowMaxAdjustUp, uint256 powLimit)
+    void UpdateRegtestPow(
+        int64_t nPowMaxAdjustDown,
+        int64_t nPowMaxAdjustUp,
+        uint256 powLimit,
+        bool noRetargeting)
     {
         consensus.nPowMaxAdjustDown = nPowMaxAdjustDown;
         consensus.nPowMaxAdjustUp = nPowMaxAdjustUp;
@@ -659,6 +663,7 @@ void UpdateRegtestPow(
 {
     regTestParams.UpdateRegtestPow(nPowMaxAdjustDown, nPowMaxAdjustUp, powLimit, noRetargeting);
 }
+
 
 int validEHparameterList(EHparameters *ehparams, unsigned long blockheight, const CChainParams& params){
     //if in overlap period, there will be two valid solutions, else 1.

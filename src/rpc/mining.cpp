@@ -675,13 +675,6 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         entry.pushKV("sigops", pblocktemplate->vTxSigOps[index_in_template]);
 
         if (tx.IsCoinBase()) {
-            // Show founders' reward if it is required
-            auto nextHeight = pindexPrev->nHeight+1;
-            bool canopyActive = consensus.NetworkUpgradeActive(nextHeight, Consensus::UPGRADE_CANOPY);
-            if (!canopyActive && nextHeight > 0 && nextHeight <= consensus.GetLastFoundersRewardBlockHeight(nextHeight)) {
-                CAmount nBlockSubsidy = GetBlockSubsidy(nextHeight, consensus);
-                entry.pushKV("foundersreward", nBlockSubsidy / 5);
-            }
             entry.pushKV("required", true);
             txCoinbase = entry;
         } else {
