@@ -2168,10 +2168,16 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     return nSubsidy;
 }
 
-int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
+CAmount GetMasternodePayment(int nHeight, int64_t blockValue)
 {
-    int64_t ret = blockValue * 0.35; //default: 35%
-    return ret;
+    
+    if (nHeight < Params().GetMasternodeProtectionBlock())
+    {
+        return 0;
+    }
+    
+    return blockValue * 35 / 100; //default: 35%
+
 }
 
 bool IsInitialBlockDownload(const CChainParams& chainParams)

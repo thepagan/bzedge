@@ -294,7 +294,7 @@ public:
         strSporkKey = "045da9271f5d9df405d9e83c7c7e62e9c831cc85c51ffaa6b515c4f9c845dec4bf256460003f26ba9d394a17cb57e6759fe231eca75b801c20bccd19cbe4b7942d";
 
         strObfuscationPoolDummyAddress = "t1cW3eB2pruAMdfc7nu5nSbEcRqdGNMup3s";
-        nStartMasternodePayments = 1574683200; //2018-04-15
+        nStartMasternodePayments = 1574683200; //2019-11-25
         nBudget_Fee_Confirmations = 6; // Number of confirmations for the finalization fee
         masternodeProtectionBlock = 883000;
         masternodeCollateral = 250000;
