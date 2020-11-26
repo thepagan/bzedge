@@ -390,7 +390,7 @@ int printStats(MetricsStats stats, bool isScreen, bool mining)
             int downloadPercent = nSizeReindexed * 100 / nFullSizeToReindex;
             std::cout << "      " << _("Reindexing blocks") << " | "
                 << DisplaySize(nSizeReindexed) << " / " << DisplaySize(nFullSizeToReindex)
-                << " (" << downloadPercent << "%, " << stats.height << " " << _("blocks") << ")" << std::endl;
+                << " (" << downloadPercent << "%, " << stats.height << " " << _("blocks") << ") @ ~" << GetDownloadSpeed(stats.height) << " blk/s" << std::endl;
         } else {
             int nHeaders = stats.currentHeadersHeight;
             if (nHeaders < 0)
