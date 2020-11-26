@@ -383,13 +383,13 @@ void DumpBudgets()
     LogPrint("masternode","Verifying budget.dat format...\n");
     CBudgetDB::ReadResult readResult = budgetdb.Read(tempBudget, true);
     // there was an error and it was not an error on file opening => do not proceed
-    if (readResult == CBudgetDB::FileError)
+    if (readResult == CBudgetDB::FileError) {
         LogPrint("masternode","Missing budgets file - budget.dat, will try to recreate\n");
-    else if (readResult != CBudgetDB::Ok) {
+    } else if (readResult != CBudgetDB::Ok) {
         LogPrint("masternode","Error reading budget.dat: ");
-        if (readResult == CBudgetDB::IncorrectFormat)
+        if (readResult == CBudgetDB::IncorrectFormat) {
             LogPrint("masternode","magic is ok but data has invalid format, will try to recreate\n");
-        else {
+        } else {
             LogPrint("masternode","file format is unknown or invalid, please fix it manually\n");
             return;
         }
