@@ -37,7 +37,7 @@ bool LogAcceptCategory(const char* category);
 #define LogPrintf(...) LogPrintInner("info", "main", __VA_ARGS__)
 
 /** Print to debug.log with level DEBUG. */
-#define LogPrint(category, ...) LogPrintInner("debug", category, __VA_ARGS__)
+#define LogPrint(category, ...) if (LogAcceptCategory(category)) LogPrintInner("debug", category, __VA_ARGS__)
 
 #define LogPrintInner(level, category, ...) do {           \
     std::string T_MSG = tfm::format(__VA_ARGS__);          \
