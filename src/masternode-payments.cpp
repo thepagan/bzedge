@@ -159,13 +159,13 @@ void DumpMasternodePayments()
     LogPrint("masternode","Verifying mnpayments.dat format...\n");
     CMasternodePaymentDB::ReadResult readResult = paymentdb.Read(tempPayments, true);
     // there was an error and it was not an error on file opening => do not proceed
-    if (readResult == CMasternodePaymentDB::FileError)
+    if (readResult == CMasternodePaymentDB::FileError) {
         LogPrint("masternode","Missing budgets file - mnpayments.dat, will try to recreate\n");
-    else if (readResult != CMasternodePaymentDB::Ok) {
+    } else if (readResult != CMasternodePaymentDB::Ok) {
         LogPrint("masternode","Error reading mnpayments.dat: ");
-        if (readResult == CMasternodePaymentDB::IncorrectFormat)
+        if (readResult == CMasternodePaymentDB::IncorrectFormat) {
             LogPrint("masternode","magic is ok but data has invalid format, will try to recreate\n");
-        else {
+        } else {
             LogPrint("masternode","file format is unknown or invalid, please fix it manually\n");
             return;
         }
@@ -186,8 +186,9 @@ bool IsBlockValueValid(const CBlock& block, CAmount nExpectedValue)
         nHeight = pindexPrev->nHeight + 1;
     } else { //out of order
         BlockMap::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
-        if (mi != mapBlockIndex.end() && (*mi).second)
+        if (mi != mapBlockIndex.end() && (*mi).second) {
             nHeight = (*mi).second->nHeight + 1;
+        }   
     }
 
     if (nHeight == 0) {
