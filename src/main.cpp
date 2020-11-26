@@ -4660,9 +4660,12 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
         return true;
     }
 
-    if (!CheckBlockHeader(block, state, chainparams))
+    // Skipped PoW checking for genesis block, known for empty equihash solution on BitcoinZ and it's chain forks
+    if (!CheckBlockHeader(block, state, chainparams, hash != chainparams.GetConsensus().hashGenesisBlock))
+    {
         return false;
-
+    }
+    
     // Get prev block index
     CBlockIndex* pindexPrev = NULL;
     if (hash != chainparams.GetConsensus().hashGenesisBlock) {
