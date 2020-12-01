@@ -261,6 +261,12 @@ unsigned int ZC_CalculateNextWorkRequired(arith_uint256 bnAvg,
 
 bool CheckEquihashSolution(const CBlockHeader *pblock, const Consensus::Params& params)
 {
+    if (pblock->GetHash() == params.hashGenesisBlock)
+    {
+        LogPrintf("Skipping eh solution check for genesis\n");
+        return true;
+    }
+    
     unsigned int n,k;
     size_t nSolSize = pblock->nSolution.size();
     switch (nSolSize){
@@ -335,6 +341,11 @@ bool CheckEquihashSolution(const CBlockHeader *pblock, const Consensus::Params& 
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
 {
+    if (hash == params.hashGenesisBlock)
+    {
+        LogPrintf("Skipping PoW check for genesis\n");
+        return true;
+    }
     bool fNegative;
     bool fOverflow;
     arith_uint256 bnTarget;

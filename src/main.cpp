@@ -75,7 +75,7 @@ CConditionVariable cvBlockChange;
 int nScriptCheckThreads = 0;
 bool fImporting = false;
 std::atomic_bool fReindex(false);
-bool fTxIndex = false;
+bool fTxIndex = true;
 bool fAddressIndex = false;     // insightexplorer || lightwalletd
 bool fSpentIndex = false;       // insightexplorer
 bool fTimestampIndex = false;   // insightexplorer
@@ -4643,7 +4643,7 @@ bool ContextualCheckBlock(
     return true;
 }
 
-static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex=NULL)
+static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex=NULL, bool fNoBlockChecks = false)
 {
     AssertLockHeld(cs_main);
     // Check for duplicate
@@ -4660,12 +4660,15 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
         return true;
     }
 
-    // Skipped PoW checking for genesis block, known for empty equihash solution on BitcoinZ and it's chain forks
-    if (!CheckBlockHeader(block, state, chainparams, hash != chainparams.GetConsensus().hashGenesisBlock))
+    if (!fNoBlockChecks)
     {
-        return false;
+        // Skipped PoW checking for genesis block, known for empty equihash solution on BitcoinZ and it's chain forks
+        if (!CheckBlockHeader(block, state, chainparams, hash != chainparams.GetConsensus().hashGenesisBlock))
+        {
+            return false;
+        }
     }
-    
+
     // Get prev block index
     CBlockIndex* pindexPrev = NULL;
     if (hash != chainparams.GetConsensus().hashGenesisBlock) {
@@ -4677,8 +4680,11 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
             return state.DoS(100, error("%s: prev block invalid", __func__), REJECT_INVALID, "bad-prevblk");
     }
 
-    if (!ContextualCheckBlockHeader(block, state, chainparams, pindexPrev))
-        return false;
+    if (!fNoBlockChecks)
+    {
+        if (!ContextualCheckBlockHeader(block, state, chainparams, pindexPrev))
+            return false;
+    }
 
     if (pindex == NULL)
         pindex = AddToBlockIndex(block, chainparams.GetConsensus());
@@ -4697,13 +4703,13 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
  * (ProcessNewBlock) later invokes ActivateBestChain, which ultimately calls
  * ConnectBlock in a manner that can verify the proofs
  */
-static bool AcceptBlock(const CBlock& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex, bool fRequested, CDiskBlockPos* dbp)
+static bool AcceptBlock(const CBlock& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex, bool fRequested, CDiskBlockPos* dbp, bool fNoBlockChecks = false)
 {
     AssertLockHeld(cs_main);
 
     CBlockIndex *&pindex = *ppindex;
 
-    if (!AcceptBlockHeader(block, state, chainparams, &pindex))
+    if (!AcceptBlockHeader(block, state, chainparams, &pindex, fNoBlockChecks))
         return false;
 
     // Try to process all requested blocks that we don't have, but only
@@ -4727,18 +4733,21 @@ static bool AcceptBlock(const CBlock& block, CValidationState& state, const CCha
         if (fTooFarAhead) return true;      // Block height is too high
     }
 
-    // See method docstring for why this is always disabled.
-    auto verifier = ProofVerifier::Disabled();
+    if (!fNoBlockChecks)
+    {
+        // See method docstring for why this is always disabled.
+        auto verifier = ProofVerifier::Disabled();
 
-    bool fCheckPOW = (pindex->nHeight != 0);
-    bool fCheckTransactions = ShouldCheckTransactions(chainparams, pindex);
-    if ((!CheckBlock(block, state, chainparams, verifier, fCheckPOW, true, fCheckTransactions)) ||
-         !ContextualCheckBlock(block, state, chainparams, pindex->pprev, fCheckTransactions)) {
-        if (state.IsInvalid() && !state.CorruptionPossible()) {
-            pindex->nStatus |= BLOCK_FAILED_VALID;
-            setDirtyBlockIndex.insert(pindex);
+        bool fCheckPOW = (pindex->nHeight != 0);
+        bool fCheckTransactions = ShouldCheckTransactions(chainparams, pindex);
+        if ((!CheckBlock(block, state, chainparams, verifier, fCheckPOW, true, fCheckTransactions)) ||
+            !ContextualCheckBlock(block, state, chainparams, pindex->pprev, fCheckTransactions)) {
+            if (state.IsInvalid() && !state.CorruptionPossible()) {
+                pindex->nStatus |= BLOCK_FAILED_VALID;
+                setDirtyBlockIndex.insert(pindex);
+            }
+            return false;
         }
-        return false;
     }
 
     int nHeight = pindex->nHeight;
@@ -4779,7 +4788,7 @@ static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned 
 }
 
 
-bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, const CNode* pfrom, const CBlock* pblock, bool fForceProcessing, CDiskBlockPos* dbp)
+bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, const CNode* pfrom, const CBlock* pblock, bool fForceProcessing, CDiskBlockPos* dbp, bool fNoBlockChecks)
 {
     auto span = TracingSpan("info", "main", "ProcessNewBlock");
     auto spanGuard = span.Enter();
@@ -4790,7 +4799,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
 
         // Store to disk
         CBlockIndex *pindex = NULL;
-        bool ret = AcceptBlock(*pblock, state, chainparams, &pindex, fRequested, dbp);
+        bool ret = AcceptBlock(*pblock, state, chainparams, &pindex, fRequested, dbp, fNoBlockChecks);
         if (pindex && pfrom) {
             mapBlockSource[pindex->GetBlockHash()] = pfrom->GetId();
         }
@@ -4802,7 +4811,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
     if (!ActivateBestChain(state, chainparams, pblock))
         return error("%s: ActivateBestChain failed", __func__);
 
-    if (!fLiteMode) {
+    if (!fLiteMode && !IsInitialBlockDownload(chainparams)) {
         if (masternodeSync.RequestedMasternodeAssets > MASTERNODE_SYNC_LIST) {
             obfuScationPool.NewBlock();
             masternodePayments.ProcessBlock(GetHeight() + 10);
@@ -5513,7 +5522,8 @@ bool InitBlockIndex(const CChainParams& chainparams)
         return true;
 
     // Use the provided setting for -txindex in the new database
-    fTxIndex = GetBoolArg("-txindex", DEFAULT_TXINDEX);
+    // fTxIndex = GetBoolArg("-txindex", DEFAULT_TXINDEX);
+    fTxIndex = DEFAULT_TXINDEX;
     pblocktree->WriteFlag("txindex", fTxIndex);
 
     // Use the provided setting for -insightexplorer or -lightwalletd in the new database
@@ -5523,8 +5533,12 @@ bool InitBlockIndex(const CChainParams& chainparams)
         fAddressIndex = true;
         fSpentIndex = true;
         fTimestampIndex = true;
+        LogPrintf("InitBlockIndex: insightexplorer => addressindex enabled\n");
+        LogPrintf("InitBlockIndex: insightexplorer => spentindex enabled\n");
+        LogPrintf("InitBlockIndex: insightexplorer => timestampindex enabled\n");
     }
     else if (fExperimentalLightWalletd) {
+        LogPrintf("InitBlockIndex: lightwalletd => addressindex enabled\n");
         fAddressIndex = true;
     }
 
@@ -5559,6 +5573,8 @@ bool InitBlockIndex(const CChainParams& chainparams)
 
 bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, CDiskBlockPos *dbp)
 {
+    bool fNoBlockChecks = GetArg("-noblockchecks", false);
+    
     // Map of disk positions for blocks with unknown parent (only used for reindex)
     static std::multimap<uint256, CDiskBlockPos> mapBlocksUnknownParent;
     int64_t nStart = GetTimeMillis();
@@ -5593,6 +5609,8 @@ bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, CDiskB
                     continue;
             } catch (const std::exception&) {
                 // no valid block header found; don't complain
+                // maybe just a little
+                LogPrintf("External block file: no valid block header found\n");
                 break;
             }
             try {
@@ -5619,7 +5637,7 @@ bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, CDiskB
                 // process in case the block isn't known yet
                 if (mapBlockIndex.count(hash) == 0 || (mapBlockIndex[hash]->nStatus & BLOCK_HAVE_DATA) == 0) {
                     CValidationState state;
-                    if (ProcessNewBlock(state, chainparams, NULL, &block, true, dbp))
+                    if (ProcessNewBlock(state, chainparams, NULL, &block, true, dbp, fNoBlockChecks))
                         nLoaded++;
                     if (state.IsError())
                         break;
@@ -5640,7 +5658,7 @@ bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, CDiskB
                             LogPrintf("%s: Processing out of order child %s of %s\n", __func__, block.GetHash().ToString(),
                                     head.ToString());
                             CValidationState dummy;
-                            if (ProcessNewBlock(dummy, chainparams, NULL, &block, true, &(range.first->second)))
+                            if (ProcessNewBlock(dummy, chainparams, NULL, &block, true, &(range.first->second), fNoBlockChecks))
                             {
                                 nLoaded++;
                                 queue.push_back(block.GetHash());

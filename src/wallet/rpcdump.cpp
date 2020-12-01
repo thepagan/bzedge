@@ -773,7 +773,7 @@ UniValue z_importkey(const UniValue& params, bool fHelp)
     
     // We want to scan for transactions and notes
     if (fRescan) {
-        pwalletMain->ScanForWalletTransactions(chainActive[nRescanHeight], true);
+        pwalletMain->ScanForWalletTransactions(chainActive[nRescanHeight], true, true);
     }
 
     return result;
@@ -869,7 +869,7 @@ UniValue z_importviewingkey(const UniValue& params, bool fHelp)
 
     // We want to scan for transactions and notes
     if (fRescan) {
-        pwalletMain->ScanForWalletTransactions(chainActive[nRescanHeight], true);
+        pwalletMain->ScanForWalletTransactions(chainActive[nRescanHeight], true, true);
     }
 
     return result;
