@@ -2319,6 +2319,9 @@ void ThreadCheckObfuScationPool()
         MilliSleep(1000);
         //LogPrintf("ThreadCheckObfuScationPool::check timeout\n");
 
+        if (IsInitialBlockDownload(Params()))
+            continue;
+
         // try to sync from all available nodes, one step at a time
         masternodeSync.Process();
 

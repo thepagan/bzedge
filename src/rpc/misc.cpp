@@ -954,7 +954,7 @@ UniValue getaddressdeltas(const UniValue& params, bool fHelp)
 UniValue getaddressbalance(const UniValue& params, bool fHelp)
 {
     std::string disabledMsg = "";
-    if (!(fExperimentalInsightExplorer || fExperimentalLightWalletd)) {
+    if (!(fAddressIndex || fExperimentalInsightExplorer || fExperimentalLightWalletd)) {
         disabledMsg = experimentalDisabledHelpMsg("getaddressbalance", {"insightexplorer", "lightwalletd"});
     }
     if (fHelp || params.size() != 1)
