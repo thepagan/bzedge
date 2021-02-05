@@ -640,20 +640,24 @@ void CWallet::ChainTip(const CBlockIndex *pindex,
                        boost::optional<std::pair<SproutMerkleTree, SaplingMerkleTree>> added)
 {
     if (added) {
-        ChainTipAdded(pindex, pblock, added->first, added->second);
+        // moved after cache building
+        //ChainTipAdded(pindex, pblock, added->first, added->second);
+        
         // Prevent witness cache building as well as migration transactions from being created when node is syncing after launch,
         // and also when node wakes up from suspension/hibernation and incoming blocks are old.
         bool initialDownloadCheck = IsInitialBlockDownload(Params());
         if (!initialDownloadCheck &&
-            pblock->GetBlockTime() > GetTime() - 3 * 60 * 60)
+            pblock->GetBlockTime() > GetTime() - 144 * 60)
         {
             BuildWitnessCache(pindex, false);
+            ChainTipAdded(pindex, pblock, added->first, added->second);
             RunSaplingMigration(pindex->nHeight);
             RunSaplingConsolidation(pindex->nHeight);
             DeleteWalletTransactions(pindex);
         } else {
             //Build intial witnesses on every block
             BuildWitnessCache(pindex, true);
+            ChainTipAdded(pindex, pblock, added->first, added->second);
             if (initialDownloadCheck && pindex->nHeight % fDeleteInterval == 0) {
                 DeleteWalletTransactions(pindex);
             }            
@@ -3958,11 +3962,12 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate, b
                     assert(pcoinsTip->GetSaplingAnchorAt(pindex->pprev->hashFinalSaplingRoot, saplingTree));
                 }
             }
-            // Check SetBestChain trigger 
-            ChainTipAdded(pindex, &block, sproutTree, saplingTree);
 
             // Build inital witness caches
             BuildWitnessCache(pindex, true);
+
+            // Check SetBestChain trigger 
+            ChainTipAdded(pindex, &block, sproutTree, saplingTree);
 
             //Delete Transactions
             if (pindex->nHeight % fDeleteInterval == 0)
