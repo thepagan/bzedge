@@ -1773,7 +1773,12 @@ bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value)
         return true;
 
     if (!pblocktree->ReadSpentIndex(key, value))
-        return error("Unable to get spent index information");
+    {
+        // return error("Unable to get spent index information");
+        // we shouldn't spam the log on each unspent output
+        return false;        
+    }
+
 
     return true;
 }
