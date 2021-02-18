@@ -39,7 +39,26 @@
 #define DO_STRINGIZE(X) #X
 
 //! Copyright string used in Windows .rc files
-#define COPYRIGHT_STR "2009-" STRINGIZE(COPYRIGHT_YEAR) " The Bitcoin Core Developers and The Zcash developers"
+#define COPYRIGHT_STR "2009-" STRINGIZE(COPYRIGHT_YEAR) " The Bitcoin Core Developers and The Zcash developers and The BZEdge developers"
+
+/**
+ * Additional macros, to ease the pain of (fork | rebase) rebranding
+ */
+#define RC_COIN_NAME "BZEdge"
+#define RC_COIN_NICKNAME "bzedgev4"
+#define RC_COIN_CLIENT_NAME "BZShares"
+#define RC_COIN_DAEMON_EXECUTABLE "bzedged"
+#define RC_COIN_CLI_EXECUTABLE "bzedge-cli"
+#define RC_COIN_TX_EXECUTABLE "bzedge-tx" 
+#define RC_COIN_WALLET_FILENAME "wallet.dat"
+#define RC_COIN_RPC_PORT_MAINNET 8232
+#define RC_COIN_RPC_PORT_TESTNET 18232
+#define RC_COIN_RPC_PORT_REGTEST 18232
+#define RC_COIN_CURRENCY_UNIT "BZE"
+#define RC_COIN_MINOR_CURRENCY_UNIT "bzetoshis"
+#define RC_APPROX_RELEASE_HEIGHT 1475000
+#define RC_MAX_OUTBOUND_CONNECTIONS 32
+
 
 /**
  * bitcoind-res.rc includes this file, but it cannot cope with real c++ code.
@@ -66,6 +85,18 @@ extern const std::string CLIENT_DATE;
 std::string FormatVersion(int nVersion);
 std::string FormatFullVersion();
 std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments);
+
+/**
+ * Additional defined macros converted to const strings
+ */
+const std::string COIN_NAME(RC_COIN_NAME);
+const std::string COIN_NICKNAME(RC_COIN_NICKNAME);
+const std::string COIN_DAEMON_EXECUTABLE(RC_COIN_DAEMON_EXECUTABLE);
+const std::string COIN_CLI_EXECUTABLE(RC_COIN_CLI_EXECUTABLE);
+const std::string COIN_TX_EXECUTABLE(RC_COIN_TX_EXECUTABLE);
+const std::string COIN_PID_FILENAME(RC_COIN_DAEMON_EXECUTABLE + std::string(".pid"));
+const std::string COIN_CONF_FILENAME(RC_COIN_NICKNAME + std::string(".conf"));
+
 
 #endif // WINDRES_PREPROC
 

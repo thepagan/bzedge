@@ -18,6 +18,51 @@
 
 #include "chainparamsseeds.h"
 
+/**
+ * Main network
+ */
+/**
+ * What makes a good checkpoint block?
+ * + Is surrounded by blocks with reasonable timestamps
+ *   (no blocks before with a timestamp after, none after with
+ *    timestamp before)
+ * + Contains no strange transactions
+ */
+
+
+/*
+Summary of additional consensus parameters
+mainnnet
+        consensus.fPowNoRetargeting=false;
+        consensus.nLWMAHeight=200000;
+        consensus.nPowLwmaTargetSpacing = 1 * 60;
+        consensus.nZawyLwmaAveragingWindow = 75;  //N=75 recommended by Zawy
+        consensus.nZawyLwmaAdjustedWeight = 13772; // hx43 uses k = (N+1)/2 * 0.998 * T 13772
+        consensus.nZawyLwmaMinDenominator = 10;
+        consensus.fZawyLwmaSolvetimeLimitation = true;
+
+
+testnet
+        consensus.fPowNoRetargeting=false;
+        consensus.nLWMAHeight=20000;
+        consensus.nPowLwmaTargetSpacing = 1 * 60;
+        consensus.nZawyLwmaAveragingWindow = 75;  //N=75 recommended by Zawy
+        consensus.nZawyLwmaAdjustedWeight = 13772;
+        consensus.nZawyLwmaMinDenominator = 10;
+        consensus.fZawyLwmaSolvetimeLimitation = true;
+
+regtest
+        consensus.fPowNoRetargeting=true
+        consensus.nLWMAHeight=-1
+        consensus.nPowLwmaTargetSpacing = 1 * 60;
+        consensus.nZawyLwmaAveragingWindow = 75;  //N=75 recommended by Zawy
+        consensus.nZawyLwmaAdjustedWeight = 13772;
+        consensus.nZawyLwmaMinDenominator = 10;
+        consensus.fZawyLwmaSolvetimeLimitation = true;
+
+*/
+
+
 static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, const uint256& nNonce, const std::vector<unsigned char>& nSolution, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
     // To create a genesis block for a new chain which is Overwintered:
@@ -29,7 +74,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
     txNew.nVersion = 1;
     txNew.vin.resize(1);
     txNew.vout.resize(1);
-    txNew.vin[0].scriptSig = CScript() << 520617983 << CScriptNum(4) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+    txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
     txNew.vout[0].nValue = genesisReward;
     txNew.vout[0].scriptPubKey = genesisOutputScript;
 
@@ -38,6 +83,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
     genesis.nBits    = nBits;
     genesis.nNonce   = nNonce;
     genesis.nSolution = nSolution;
+    // genesis.nSolution.clear(); // for no solution in genesis block
     genesis.nVersion = nVersion;
     genesis.vtx.push_back(txNew);
     genesis.hashPrevBlock.SetNull();
@@ -45,23 +91,18 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
     return genesis;
 }
 
-/**
- * Build the genesis block. Note that the output of its generation
- * transaction cannot be spent since it did not originally exist in the
- * database (and is in any case of zero value).
- *
- * >>> from pyblake2 import blake2s
- * >>> 'Zcash' + blake2s(b'The Economist 2016-10-29 Known unknown: Another crypto-currency is born. BTC#436254 0000000000000000044f321997f336d2908cf8c8d6893e88dbf067e2d949487d ETH#2521903 483039a6b6bd8bd05f0584f9a078d075e454925eb71c1f13eaff59b405a721bb DJIA close on 27 Oct 2016: 18,169.68').hexdigest()
- *
- * CBlock(hash=00040fe8, ver=4, hashPrevBlock=00000000000000, hashMerkleRoot=c4eaa5, nTime=1477641360, nBits=1f07ffff, nNonce=4695, vtx=1)
- *   CTransaction(hash=c4eaa5, ver=1, vin.size=1, vout.size=1, nLockTime=0)
- *     CTxIn(COutPoint(000000, -1), coinbase 04ffff071f0104455a6361736830623963346565663862376363343137656535303031653335303039383462366665613335363833613763616331343161303433633432303634383335643334)
- *     CTxOut(nValue=0.00000000, scriptPubKey=0x5F1DF16B2B704C8A578D0B)
- *   vMerkleTree: c4eaa5
- */
+
+	/**
+	* Build the genesis block. Note that the output of its generation
+	* transaction cannot be spent since it did not originally exist in the
+	* database (and is in any case of zero value).
+	*
+	* >>> from pyblake2 import blake2s
+	* >>> 'BitcoinZ' + blake2s(b'BitcoinZ - Your Financial Freedom. Dedicated to The Purest Son of Liberty - Thaddeus Kosciuszko. BTC #484410 - 0000000000000000000c6a5f221ebeb77437cbab649d990facd0e42a24ee6231').hexdigest()
+	*/
 static CBlock CreateGenesisBlock(uint32_t nTime, const uint256& nNonce, const std::vector<unsigned char>& nSolution, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
-    const char* pszTimestamp = "Zcash0b9c4eef8b7cc417ee5001e3500984b6fea35683a7cac141a043c42064835d34";
+    const char* pszTimestamp = "BitcoinZ2beeec1ef52fd18475953563ebdb287f056453f452200581f958711118e980b2";
     const CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nSolution, nBits, nVersion, genesisReward);
 }
@@ -83,50 +124,48 @@ class CMainParams : public CChainParams {
 public:
     CMainParams() {
         strNetworkID = "main";
-        strCurrencyUnits = "ZEC";
-        bip44CoinType = 133; // As registered in https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+        strCurrencyUnits = "BZE";
+        bip44CoinType = 133; // zcash => As registered in https://github.com/satoshilabs/slips/blob/master/slip-0044.md
         consensus.fCoinbaseMustBeShielded = true;
-        consensus.nSubsidySlowStartInterval = 20000;
+        consensus.nSubsidySlowStartInterval = 2;
         consensus.nPreBlossomSubsidyHalvingInterval = Consensus::PRE_BLOSSOM_HALVING_INTERVAL;
         consensus.nPostBlossomSubsidyHalvingInterval = POST_BLOSSOM_HALVING_INTERVAL(Consensus::PRE_BLOSSOM_HALVING_INTERVAL);
         consensus.nMajorityEnforceBlockUpgrade = 750;
         consensus.nMajorityRejectBlockOutdated = 950;
         consensus.nMajorityWindow = 4000;
-        const size_t N = 200, K = 9;
-        static_assert(equihash_parameters_acceptable(N, K));
-        consensus.nEquihashN = N;
-        consensus.nEquihashK = K;
         consensus.powLimit = uint256S("0007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowAveragingWindow = 17;
+        consensus.nPowAveragingWindow = 13;
         assert(maxUint/UintToArith256(consensus.powLimit) >= consensus.nPowAveragingWindow);
-        consensus.nPowMaxAdjustDown = 32; // 32% adjustment down
-        consensus.nPowMaxAdjustUp = 16; // 16% adjustment up
-        consensus.nPreBlossomPowTargetSpacing = Consensus::PRE_BLOSSOM_POW_TARGET_SPACING;
+        consensus.nPowMaxAdjustDown = 34;
+        consensus.nPowMaxAdjustUp = 34;
+        consensus.nPreBlossomPowTargetSpacing = Consensus::PRE_BLOSSOM_POW_TARGET_SPACING; 
         consensus.nPostBlossomPowTargetSpacing = Consensus::POST_BLOSSOM_POW_TARGET_SPACING;
         consensus.nPowAllowMinDifficultyBlocksAfterHeight = boost::none;
         consensus.fPowNoRetargeting = false;
-        consensus.vUpgrades[Consensus::BASE_SPROUT].nProtocolVersion = 170002;
+        consensus.vUpgrades[Consensus::BASE_SPROUT].nProtocolVersion = 175007;
         consensus.vUpgrades[Consensus::BASE_SPROUT].nActivationHeight =
             Consensus::NetworkUpgrade::ALWAYS_ACTIVE;
-        consensus.vUpgrades[Consensus::UPGRADE_TESTDUMMY].nProtocolVersion = 170002;
+        consensus.vUpgrades[Consensus::UPGRADE_TESTDUMMY].nProtocolVersion = 175007;
         consensus.vUpgrades[Consensus::UPGRADE_TESTDUMMY].nActivationHeight =
             Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
-        consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nProtocolVersion = 170005;
-        consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight = 347500;
+        consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nProtocolVersion = 175015;
+        consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight = 484000;
         consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].hashActivationBlock =
-            uint256S("0000000003761c0d0c3974b54bdb425613bbb1eaadd6e70b764de82f195ea243");
-        consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nProtocolVersion = 170007;
-        consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight = 419200;
+            uint256S("00001be3b8c4d07bc927be3c2295e7840327b5975656683bfc34093540113dd9");
+        consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nProtocolVersion = 175017;
+        consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight = 484000;
         consensus.vUpgrades[Consensus::UPGRADE_SAPLING].hashActivationBlock =
-            uint256S("00000000025a57200d898ac7f21e26bf29028bbe96ec46e05b2c17cc9db9e4f3");
-        consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nProtocolVersion = 170009;
-        consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nActivationHeight = 653600;
-        consensus.vUpgrades[Consensus::UPGRADE_HEARTWOOD].nProtocolVersion = 170011;
-        consensus.vUpgrades[Consensus::UPGRADE_HEARTWOOD].nActivationHeight = 903000;
-        consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nProtocolVersion = 170013;
-        consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nActivationHeight = 1046400;
-
-        consensus.nFundingPeriodLength = consensus.nPostBlossomSubsidyHalvingInterval / 48;
+            uint256S("00001be3b8c4d07bc927be3c2295e7840327b5975656683bfc34093540113dd9");
+        consensus.vUpgrades[Consensus::UPGRADE_BZSHARES].nActivationHeight = 883000;
+        consensus.vUpgrades[Consensus::UPGRADE_BZSHARES].nProtocolVersion = 175018;
+	consensus.vUpgrades[Consensus::UPGRADE_BZSHARES].hashActivationBlock =
+            uint256S("000012d151861912ceb0209c6cdd9374114d0fe0a136a9f0a62d4ce3401dd59b");
+        consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nProtocolVersion = 175019;
+        consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nActivationHeight = Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
+        consensus.vUpgrades[Consensus::UPGRADE_HEARTWOOD].nProtocolVersion = 175021;
+        consensus.vUpgrades[Consensus::UPGRADE_HEARTWOOD].nActivationHeight = Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
+        consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nProtocolVersion = 175023;
+        consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nActivationHeight = Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
 
         // guarantees the first 2 characters, when base58 encoded, are "t1"
         keyConstants.base58Prefixes[PUBKEY_ADDRESS]     = {0x1C,0xB8};
@@ -150,82 +189,19 @@ public:
         keyConstants.bech32HRPs[SAPLING_EXTENDED_SPEND_KEY]   = "secret-extended-key-main";
         keyConstants.bech32HRPs[SAPLING_EXTENDED_FVK]         = "zxviews";
 
-        {
-            std::vector<std::string> ecc_addresses = {
-                "t3LmX1cxWPPPqL4TZHx42HU3U5ghbFjRiif",
-                "t3Toxk1vJQ6UjWQ42tUJz2rV2feUWkpbTDs",
-                "t3ZBdBe4iokmsjdhMuwkxEdqMCFN16YxKe6",
-                "t3ZuaJziLM8xZ32rjDUzVjVtyYdDSz8GLWB",
-                "t3bAtYWa4bi8VrtvqySxnbr5uqcG9czQGTZ",
-                "t3dktADfb5Rmxncpe1HS5BRS5Gcj7MZWYBi",
-                "t3hgskquvKKoCtvxw86yN7q8bzwRxNgUZmc",
-                "t3R1VrLzwcxAZzkX4mX3KGbWpNsgtYtMntj",
-                "t3ff6fhemqPMVujD3AQurxRxTdvS1pPSaa2",
-                "t3cEUQFG3KYnFG6qYhPxSNgGi3HDjUPwC3J",
-                "t3WR9F5U4QvUFqqx9zFmwT6xFqduqRRXnaa",
-                "t3PYc1LWngrdUrJJbHkYPCKvJuvJjcm85Ch",
-                "t3bgkjiUeatWNkhxY3cWyLbTxKksAfk561R",
-                "t3Z5rrR8zahxUpZ8itmCKhMSfxiKjUp5Dk5",
-                "t3PU1j7YW3fJ67jUbkGhSRto8qK2qXCUiW3",
-                "t3S3yaT7EwNLaFZCamfsxxKwamQW2aRGEkh",
-                "t3eutXKJ9tEaPSxZpmowhzKhPfJvmtwTEZK",
-                "t3gbTb7brxLdVVghSPSd3ycGxzHbUpukeDm",
-                "t3UCKW2LrHFqPMQFEbZn6FpjqnhAAbfpMYR",
-                "t3NyHsrnYbqaySoQqEQRyTWkjvM2PLkU7Uu",
-                "t3QEFL6acxuZwiXtW3YvV6njDVGjJ1qeaRo",
-                "t3PdBRr2S1XTDzrV8bnZkXF3SJcrzHWe1wj",
-                "t3ZWyRPpWRo23pKxTLtWsnfEKeq9T4XPxKM",
-                "t3he6QytKCTydhpztykFsSsb9PmBT5JBZLi",
-                "t3VWxWDsLb2TURNEP6tA1ZSeQzUmPKFNxRY",
-                "t3NmWLvZkbciNAipauzsFRMxoZGqmtJksbz",
-                "t3cKr4YxVPvPBG1mCvzaoTTdBNokohsRJ8n",
-                "t3T3smGZn6BoSFXWWXa1RaoQdcyaFjMfuYK",
-                "t3gkDUe9Gm4GGpjMk86TiJZqhztBVMiUSSA",
-                "t3eretuBeBXFHe5jAqeSpUS1cpxVh51fAeb",
-                "t3dN8g9zi2UGJdixGe9txeSxeofLS9t3yFQ",
-                "t3S799pq9sYBFwccRecoTJ3SvQXRHPrHqvx",
-                "t3fhYnv1S5dXwau7GED3c1XErzt4n4vDxmf",
-                "t3cmE3vsBc5xfDJKXXZdpydCPSdZqt6AcNi",
-                "t3h5fPdjJVHaH4HwynYDM5BB3J7uQaoUwKi",
-                "t3Ma35c68BgRX8sdLDJ6WR1PCrKiWHG4Da9",
-                "t3LokMKPL1J8rkJZvVpfuH7dLu6oUWqZKQK",
-                "t3WFFGbEbhJWnASZxVLw2iTJBZfJGGX73mM",
-                "t3L8GLEsUn4QHNaRYcX3EGyXmQ8kjpT1zTa",
-                "t3PgfByBhaBSkH8uq4nYJ9ZBX4NhGCJBVYm",
-                "t3WecsqKDhWXD4JAgBVcnaCC2itzyNZhJrv",
-                "t3ZG9cSfopnsMQupKW5v9sTotjcP5P6RTbn",
-                "t3hC1Ywb5zDwUYYV8LwhvF5rZ6m49jxXSG5",
-                "t3VgMqDL15ZcyQDeqBsBW3W6rzfftrWP2yB",
-                "t3LC94Y6BwLoDtBoK2NuewaEbnko1zvR9rm",
-                "t3cWCUZJR3GtALaTcatrrpNJ3MGbMFVLRwQ",
-                "t3YYF4rPLVxDcF9hHFsXyc5Yq1TFfbojCY6",
-                "t3XHAGxRP2FNfhAjxGjxbrQPYtQQjc3RCQD",
-            };
-
-            // ZF and MG each use a single address repeated 48 times,
-            // once for each funding period.
-            std::vector<std::string> zf_addresses(48, "t3dvVE3SQEi7kqNzwrfNePxZ1d4hUyztBA1");
-            std::vector<std::string> mg_addresses(48, "t3XyYW8yBFRuMnfvm5KLGFbEVz25kckZXym");
-
-            consensus.AddZIP207FundingStream(
-                keyConstants,
-                Consensus::FS_ZIP214_BP,
-                consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nActivationHeight, 2726400,
-                ecc_addresses);
-            consensus.AddZIP207FundingStream(
-                keyConstants,
-                Consensus::FS_ZIP214_ZF,
-                consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nActivationHeight, 2726400,
-                zf_addresses);
-            consensus.AddZIP207FundingStream(
-                keyConstants,
-                Consensus::FS_ZIP214_MG,
-                consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nActivationHeight, 2726400,
-                mg_addresses);
-        }
+        consensus.nFutureTimestampSoftForkHeight = 2000000;
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("000000000000000000000000000000000000000000000000017e73a331fae01c");
+        consensus.nMinimumChainWork = uint256S("00000000000000000000000000000000000000000000000000008d9a03d79a68");
+
+	consensus.fPowNoRetargeting=false;
+        consensus.nLWMAHeight=199900;
+        consensus.nPowLwmaTargetSpacing = 1 * 60;
+        consensus.nZawyLwmaAveragingWindow = 75;
+        consensus.nZawyLwmaAdjustedWeight = 2280;
+        consensus.nZawyLwmaMinDenominator = 10;
+        consensus.fZawyLwmaSolvetimeLimitation = true;
+        consensus.ZCnPowTargetSpacing = 2.5 * 60; //legacy spacing.
 
         /**
          * The message start string should be awesome! ⓩ❤
@@ -234,25 +210,43 @@ public:
         pchMessageStart[1] = 0xe9;
         pchMessageStart[2] = 0x27;
         pchMessageStart[3] = 0x64;
-        vAlertPubKey = ParseHex("04b7ecf0baa90495ceb4e4090f6b2fd37eec1e9c85fac68a487f3ce11589692e4a317479316ee814e066638e1db54e37a10689b70286e6315b1087b6615d179264");
-        nDefaultPort = 8233;
+        vAlertPubKey = ParseHex("04696857e466eba4ea69697c7227b1aefa29e7b67c8a1187f3a93c59332b327ec37865f7f620ec139b6f174afbb3ff487c512fb2c37906b92d48caa3ba85a00114");
+        nDefaultPort = 1990;
         nPruneAfterHeight = 100000;
 
+        newTimeRule = 200000;
+        eh_epoch_1 = eh200_9;
+        eh_epoch_2 = eh144_5;
+        eh_epoch_1_endblock = 200000;
+        eh_epoch_2_startblock = 200000;
+        
+        bze_pers_start_blocktime = 1553371200; // Human time (GMT): Saturday, March 23, 2019 8:00:00 PM
+        
+        const size_t N = 144, K = 5;
+        static_assert(equihash_parameters_acceptable(N, K));
+        consensus.nEquihashN = N;
+        consensus.nEquihashK = K;
+
+        nMasternodeCountDrift = 0;
+
+	// empty solution
+	const std::vector<unsigned char> empty_solution;
+
         genesis = CreateGenesisBlock(
-            1477641360,
-            uint256S("0x0000000000000000000000000000000000000000000000000000000000001257"),
-            ParseHex("000a889f00854b8665cd555f4656f68179d31ccadc1b1f7fb0952726313b16941da348284d67add4686121d4e3d930160c1348d8191c25f12b267a6a9c131b5031cbf8af1f79c9d513076a216ec87ed045fa966e01214ed83ca02dc1797270a454720d3206ac7d931a0a680c5c5e099057592570ca9bdf6058343958b31901fce1a15a4f38fd347750912e14004c73dfe588b903b6c03166582eeaf30529b14072a7b3079e3a684601b9b3024054201f7440b0ee9eb1a7120ff43f713735494aa27b1f8bab60d7f398bca14f6abb2adbf29b04099121438a7974b078a11635b594e9170f1086140b4173822dd697894483e1c6b4e8b8dcd5cb12ca4903bc61e108871d4d915a9093c18ac9b02b6716ce1013ca2c1174e319c1a570215bc9ab5f7564765f7be20524dc3fdf8aa356fd94d445e05ab165ad8bb4a0db096c097618c81098f91443c719416d39837af6de85015dca0de89462b1d8386758b2cf8a99e00953b308032ae44c35e05eb71842922eb69797f68813b59caf266cb6c213569ae3280505421a7e3a0a37fdf8e2ea354fc5422816655394a9454bac542a9298f176e211020d63dee6852c40de02267e2fc9d5e1ff2ad9309506f02a1a71a0501b16d0d36f70cdfd8de78116c0c506ee0b8ddfdeb561acadf31746b5a9dd32c21930884397fb1682164cb565cc14e089d66635a32618f7eb05fe05082b8a3fae620571660a6b89886eac53dec109d7cbb6930ca698a168f301a950be152da1be2b9e07516995e20baceebecb5579d7cdbc16d09f3a50cb3c7dffe33f26686d4ff3f8946ee6475e98cf7b3cf9062b6966e838f865ff3de5fb064a37a21da7bb8dfd2501a29e184f207caaba364f36f2329a77515dcb710e29ffbf73e2bbd773fab1f9a6b005567affff605c132e4e4dd69f36bd201005458cfbd2c658701eb2a700251cefd886b1e674ae816d3f719bac64be649c172ba27a4fd55947d95d53ba4cbc73de97b8af5ed4840b659370c556e7376457f51e5ebb66018849923db82c1c9a819f173cccdb8f3324b239609a300018d0fb094adf5bd7cbb3834c69e6d0b3798065c525b20f040e965e1a161af78ff7561cd874f5f1b75aa0bc77f720589e1b810f831eac5073e6dd46d00a2793f70f7427f0f798f2f53a67e615e65d356e66fe40609a958a05edb4c175bcc383ea0530e67ddbe479a898943c6e3074c6fcc252d6014de3a3d292b03f0d88d312fe221be7be7e3c59d07fa0f2f4029e364f1f355c5d01fa53770d0cd76d82bf7e60f6903bc1beb772e6fde4a70be51d9c7e03c8d6d8dfb361a234ba47c470fe630820bbd920715621b9fbedb49fcee165ead0875e6c2b1af16f50b5d6140cc981122fcbcf7c5a4e3772b3661b628e08380abc545957e59f634705b1bbde2f0b4e055a5ec5676d859be77e20962b645e051a880fddb0180b4555789e1f9344a436a84dc5579e2553f1e5fb0a599c137be36cabbed0319831fea3fddf94ddc7971e4bcf02cdc93294a9aab3e3b13e3b058235b4f4ec06ba4ceaa49d675b4ba80716f3bc6976b1fbf9c8bf1f3e3a4dc1cd83ef9cf816667fb94f1e923ff63fef072e6a19321e4812f96cb0ffa864da50ad74deb76917a336f31dce03ed5f0303aad5e6a83634f9fcc371096f8288b8f02ddded5ff1bb9d49331e4a84dbe1543164438fde9ad71dab024779dcdde0b6602b5ae0a6265c14b94edd83b37403f4b78fcd2ed555b596402c28ee81d87a909c4e8722b30c71ecdd861b05f61f8b1231795c76adba2fdefa451b283a5d527955b9f3de1b9828e7b2e74123dd47062ddcc09b05e7fa13cb2212a6fdbc65d7e852cec463ec6fd929f5b8483cf3052113b13dac91b69f49d1b7d1aec01c4a68e41ce157"),
+            1478403829,
+            uint256S("0x000000000000000000000000000000000000000000000000000000000000021d"),
+            empty_solution,
             0x1f07ffff, 4, 0);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x00040fe8ec8471911baa1db1266ea15dd06b4a8a5c453883c000b031973dce08"));
-        assert(genesis.hashMerkleRoot == uint256S("0xc4eaa58879081de3c24a7b117ed2b28300e7ec4c4c1dff1d3f1268b7857a4ddb"));
+        printf("GENESIS MAIN: %s\n", consensus.hashGenesisBlock.ToString().c_str());
+        assert(consensus.hashGenesisBlock == uint256S("0xf499ee3d498b4298ac6a64205b8addb7c43197e2a660229be65db8a4534d75c1")); //incremented by 1 making 2
+        assert(genesis.hashMerkleRoot == uint256S("0xf40283d893eb46b35379a404cf06bd58c22ce05b32a4a641adec56e0792789ad"));
+
+        printf("PEPE: genesis.bits = %08x \n", genesis.nBits);
+        printf("PEPE: genesis.nonce = %s \n", genesis.nNonce.ToString().c_str());
 
         vFixedSeeds.clear();
         vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("z.cash", "dnsseed.z.cash")); // Zcash
-        vSeeds.push_back(CDNSSeedData("str4d.xyz", "dnsseed.str4d.xyz")); // @str4d
-        vSeeds.push_back(CDNSSeedData("zfnd.org", "mainnet.seeder.zfnd.org")); // Zcash Foundation
-        vSeeds.push_back(CDNSSeedData("yolo.money", "mainnet.is.yolo.money")); // gtank
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 
@@ -262,94 +256,48 @@ public:
         fMineBlocksOnDemand = false;
         fTestnetToBeDeprecatedFieldRPC = false;
 
-        checkpointData = (CCheckpointData) {
-            boost::assign::map_list_of
-            (0, consensus.hashGenesisBlock)
-            (2500, uint256S("0x00000006dc968f600be11a86cbfbf7feb61c7577f45caced2e82b6d261d19744"))
-            (15000, uint256S("0x00000000b6bc56656812a5b8dcad69d6ad4446dec23b5ec456c18641fb5381ba"))
-            (67500, uint256S("0x000000006b366d2c1649a6ebb4787ac2b39c422f451880bc922e3a6fbd723616"))
-            (100000, uint256S("0x000000001c5c82cd6baccfc0879e3830fd50d5ede17fa2c37a9a253c610eb285"))
-            (133337, uint256S("0x0000000002776ccfaf06cc19857accf3e20c01965282f916b8a886e3e4a05be9"))
-            (180000, uint256S("0x000000001205b742eac4a1b3959635bdf8aeada078d6a996df89740f7b54351d"))
-            (222222, uint256S("0x000000000cafb9e56445a6cabc8057b57ee6fcc709e7adbfa195e5c7fac61343"))
-            (270000, uint256S("0x00000000025c1cfa0258e33ab050aaa9338a3d4aaa3eb41defefc887779a9729"))
-            (304600, uint256S("0x00000000028324e022a45014c4a4dc51e95d41e6bceb6ad554c5b65d5cea3ea5"))
-            (410100, uint256S("0x0000000002c565958f783a24a4ac17cde898ff525e75ed9baf66861b0b9fcada"))
-            (497000, uint256S("0x0000000000abd333f0acca6ffdf78a167699686d6a7d25c33fca5f295061ffff"))
-            (525000, uint256S("0x0000000001a36c500378be8862d9bf1bea8f1616da6e155971b608139cc7e39b")),
-            1556722044,     // * UNIX timestamp of last checkpoint block
-            4653556,        // * total number of transactions between genesis and last checkpoint
-            5106            // * estimated number of transactions per day after checkpoint
-                            //   total number of tx / (checkpoint block height / (24 * 24))
-        };
+	checkpointData = (CCheckpointData) {
+		boost::assign::map_list_of
+		( 0, uint256S("0xf499ee3d498b4298ac6a64205b8addb7c43197e2a660229be65db8a4534d75c1"))
+		( 2007, uint256S("0x000000215111f83669484439371ced6e3bc48cd7e7d6be8afa18952206304a1b"))
+		( 10000, uint256S("0x00000002ccb858ec2c35fb79ce2079333461efa50f2b59814558b9ae3ce62a40"))
+		( 20675, uint256S("0x00000004804df1618f984fef70c1a210988ade5093b6947c691422fc93013a63")) // Thaddeus Kosciuszko - 200th death anniversary (October 15 2017)
+		( 40000, uint256S("0x00000005a2d9a94e2e16f9c1e578a2eb46cc267ab7a51539d22ff8aa0096140b"))
+		( 56000, uint256S("0x000000026a063927c6746acec6c0957d1f69fa2ab1a59c06ce30d60bbbcea92a"))
+		( 84208, uint256S("0x0000000328e5d0346a78aea2d586154ab3145d51ba3936998253593b0ab2980c"))
+		( 105841, uint256S("0x000000010305387fd72bc70ce5cc5b512fe513016e7208b9ee61d601fe212991"))  //Dr Hawking, Rest in peace.
+		( 140000, uint256S("0x0000000155f89d1ededf519c6445d41c9240ee4daa721c91c19eea0faa2f02c8"))
+		( 153955, uint256S("0x00000006913d3122f32e60c9d64e87edd8e9a05444447df49713c15fbae6484d"))
+		( 160011, uint256S("0x00000002858c5af3a2e7c511c1b360533bef782361415e8e6515eb5961d88354"))  //BZEdge born
+		( 165300, uint256S("0x000001f49a3c070be93770e8d7e84b281c159e367d56c809048d02441db1956c"))
+		( 444600, uint256S("0x0000181b00e928fac7c5841f04ab99038cedbd3776ff658df6eb6c841ccc2ea3"))
+		( 586000, uint256S("0x0000094cf923b3cccc179769b948b1cd091382a7ab19db2369ef8e66d0e49cfd"))
+		( 868010, uint256S("0x00006ed38c012a59d3f17be569eb9da5c4147a3a9297ffd189b46c02d9d0ef4e"))
+            	( 1200000, uint256S("0x0000fddbdaa51d886f34bb7db2b49022a5f5f9e23307d3342373bac90070c363")),
+
+		1596365964, // * UNIX timestamp of last checkpoint block
+		2519866,    // * total number of transactions between genesis and last checkpoint
+			    //   (the tx=... number in the SetBestChain debug.log lines)
+		3000        // * estimated number of transactions per day after checkpoint
+							
+		};
 
         // Hardcoded fallback value for the Sprout shielded value pool balance
         // for nodes that have not reindexed since the introduction of monitoring
         // in #2795.
-        nSproutValuePoolCheckpointHeight = 520633;
-        nSproutValuePoolCheckpointBalance = 22145062442933;
+        nSproutValuePoolCheckpointHeight = 1200000;
+        nSproutValuePoolCheckpointBalance = 9029156129573206;
         fZIP209Enabled = true;
-        hashSproutValuePoolCheckpointBlock = uint256S("0000000000c7b46b6bc04b4cbf87d8bb08722aebd51232619b214f7273f8460e");
+        hashSproutValuePoolCheckpointBlock = uint256S("0000fddbdaa51d886f34bb7db2b49022a5f5f9e23307d3342373bac90070c363");
 
-        // Founders reward script expects a vector of 2-of-3 multisig addresses
-        vFoundersRewardAddress = {
-            "t3Vz22vK5z2LcKEdg16Yv4FFneEL1zg9ojd", /* main-index: 0*/
-            "t3cL9AucCajm3HXDhb5jBnJK2vapVoXsop3", /* main-index: 1*/
-            "t3fqvkzrrNaMcamkQMwAyHRjfDdM2xQvDTR", /* main-index: 2*/
-            "t3TgZ9ZT2CTSK44AnUPi6qeNaHa2eC7pUyF", /* main-index: 3*/
-            "t3SpkcPQPfuRYHsP5vz3Pv86PgKo5m9KVmx", /* main-index: 4*/
-            "t3Xt4oQMRPagwbpQqkgAViQgtST4VoSWR6S", /* main-index: 5*/
-            "t3ayBkZ4w6kKXynwoHZFUSSgXRKtogTXNgb", /* main-index: 6*/
-            "t3adJBQuaa21u7NxbR8YMzp3km3TbSZ4MGB", /* main-index: 7*/
-            "t3K4aLYagSSBySdrfAGGeUd5H9z5Qvz88t2", /* main-index: 8*/
-            "t3RYnsc5nhEvKiva3ZPhfRSk7eyh1CrA6Rk", /* main-index: 9*/
-            "t3Ut4KUq2ZSMTPNE67pBU5LqYCi2q36KpXQ", /* main-index: 10*/
-            "t3ZnCNAvgu6CSyHm1vWtrx3aiN98dSAGpnD", /* main-index: 11*/
-            "t3fB9cB3eSYim64BS9xfwAHQUKLgQQroBDG", /* main-index: 12*/
-            "t3cwZfKNNj2vXMAHBQeewm6pXhKFdhk18kD", /* main-index: 13*/
-            "t3YcoujXfspWy7rbNUsGKxFEWZqNstGpeG4", /* main-index: 14*/
-            "t3bLvCLigc6rbNrUTS5NwkgyVrZcZumTRa4", /* main-index: 15*/
-            "t3VvHWa7r3oy67YtU4LZKGCWa2J6eGHvShi", /* main-index: 16*/
-            "t3eF9X6X2dSo7MCvTjfZEzwWrVzquxRLNeY", /* main-index: 17*/
-            "t3esCNwwmcyc8i9qQfyTbYhTqmYXZ9AwK3X", /* main-index: 18*/
-            "t3M4jN7hYE2e27yLsuQPPjuVek81WV3VbBj", /* main-index: 19*/
-            "t3gGWxdC67CYNoBbPjNvrrWLAWxPqZLxrVY", /* main-index: 20*/
-            "t3LTWeoxeWPbmdkUD3NWBquk4WkazhFBmvU", /* main-index: 21*/
-            "t3P5KKX97gXYFSaSjJPiruQEX84yF5z3Tjq", /* main-index: 22*/
-            "t3f3T3nCWsEpzmD35VK62JgQfFig74dV8C9", /* main-index: 23*/
-            "t3Rqonuzz7afkF7156ZA4vi4iimRSEn41hj", /* main-index: 24*/
-            "t3fJZ5jYsyxDtvNrWBeoMbvJaQCj4JJgbgX", /* main-index: 25*/
-            "t3Pnbg7XjP7FGPBUuz75H65aczphHgkpoJW", /* main-index: 26*/
-            "t3WeKQDxCijL5X7rwFem1MTL9ZwVJkUFhpF", /* main-index: 27*/
-            "t3Y9FNi26J7UtAUC4moaETLbMo8KS1Be6ME", /* main-index: 28*/
-            "t3aNRLLsL2y8xcjPheZZwFy3Pcv7CsTwBec", /* main-index: 29*/
-            "t3gQDEavk5VzAAHK8TrQu2BWDLxEiF1unBm", /* main-index: 30*/
-            "t3Rbykhx1TUFrgXrmBYrAJe2STxRKFL7G9r", /* main-index: 31*/
-            "t3aaW4aTdP7a8d1VTE1Bod2yhbeggHgMajR", /* main-index: 32*/
-            "t3YEiAa6uEjXwFL2v5ztU1fn3yKgzMQqNyo", /* main-index: 33*/
-            "t3g1yUUwt2PbmDvMDevTCPWUcbDatL2iQGP", /* main-index: 34*/
-            "t3dPWnep6YqGPuY1CecgbeZrY9iUwH8Yd4z", /* main-index: 35*/
-            "t3QRZXHDPh2hwU46iQs2776kRuuWfwFp4dV", /* main-index: 36*/
-            "t3enhACRxi1ZD7e8ePomVGKn7wp7N9fFJ3r", /* main-index: 37*/
-            "t3PkLgT71TnF112nSwBToXsD77yNbx2gJJY", /* main-index: 38*/
-            "t3LQtHUDoe7ZhhvddRv4vnaoNAhCr2f4oFN", /* main-index: 39*/
-            "t3fNcdBUbycvbCtsD2n9q3LuxG7jVPvFB8L", /* main-index: 40*/
-            "t3dKojUU2EMjs28nHV84TvkVEUDu1M1FaEx", /* main-index: 41*/
-            "t3aKH6NiWN1ofGd8c19rZiqgYpkJ3n679ME", /* main-index: 42*/
-            "t3MEXDF9Wsi63KwpPuQdD6by32Mw2bNTbEa", /* main-index: 43*/
-            "t3WDhPfik343yNmPTqtkZAoQZeqA83K7Y3f", /* main-index: 44*/
-            "t3PSn5TbMMAEw7Eu36DYctFezRzpX1hzf3M", /* main-index: 45*/
-            "t3R3Y5vnBLrEn8L6wFjPjBLnxSUQsKnmFpv", /* main-index: 46*/
-            "t3Pcm737EsVkGTbhsu2NekKtJeG92mvYyoN", /* main-index: 47*/
-//            "t3PZ9PPcLzgL57XRSG5ND4WNBC9UTFb8DXv", /* main-index: 48*/
-//            "t3L1WgcyQ95vtpSgjHfgANHyVYvffJZ9iGb", /* main-index: 49*/
-//            "t3JtoXqsv3FuS7SznYCd5pZJGU9di15mdd7", /* main-index: 50*/
-//            "t3hLJHrHs3ytDgExxr1mD8DYSrk1TowGV25", /* main-index: 51*/
-//            "t3fmYHU2DnVaQgPhDs6TMFVmyC3qbWEWgXN", /* main-index: 52*/
-//            "t3T4WmAp6nrLkJ24iPpGeCe1fSWTPv47ASG", /* main-index: 53*/
-//            "t3fP6GrDM4QVwdjFhmCxGNbe7jXXXSDQ5dv", /* main-index: 54*/
-};
-        assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight(0));
+        nPoolMaxTransactions = 3;
+        strSporkKey = "045da9271f5d9df405d9e83c7c7e62e9c831cc85c51ffaa6b515c4f9c845dec4bf256460003f26ba9d394a17cb57e6759fe231eca75b801c20bccd19cbe4b7942d";
+
+        strObfuscationPoolDummyAddress = "t1cW3eB2pruAMdfc7nu5nSbEcRqdGNMup3s";
+        nStartMasternodePayments = 1574683200; //2019-11-25
+        nBudget_Fee_Confirmations = 6; // Number of confirmations for the finalization fee
+        masternodeProtectionBlock = 883000;
+        masternodeCollateral = 250000;
     }
 };
 static CMainParams mainParams;
@@ -361,24 +309,20 @@ class CTestNetParams : public CChainParams {
 public:
     CTestNetParams() {
         strNetworkID = "test";
-        strCurrencyUnits = "TAZ";
+        strCurrencyUnits = "TBZE";
         bip44CoinType = 1;
         consensus.fCoinbaseMustBeShielded = true;
-        consensus.nSubsidySlowStartInterval = 20000;
+        consensus.nSubsidySlowStartInterval = 2;
         consensus.nPreBlossomSubsidyHalvingInterval = Consensus::PRE_BLOSSOM_HALVING_INTERVAL;
         consensus.nPostBlossomSubsidyHalvingInterval = POST_BLOSSOM_HALVING_INTERVAL(Consensus::PRE_BLOSSOM_HALVING_INTERVAL);
         consensus.nMajorityEnforceBlockUpgrade = 51;
         consensus.nMajorityRejectBlockOutdated = 75;
         consensus.nMajorityWindow = 400;
-        const size_t N = 200, K = 9;
-        static_assert(equihash_parameters_acceptable(N, K));
-        consensus.nEquihashN = N;
-        consensus.nEquihashK = K;
         consensus.powLimit = uint256S("07ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowAveragingWindow = 17;
+        consensus.nPowAveragingWindow = 13;
         assert(maxUint/UintToArith256(consensus.powLimit) >= consensus.nPowAveragingWindow);
-        consensus.nPowMaxAdjustDown = 32; // 32% adjustment down
-        consensus.nPowMaxAdjustUp = 16; // 16% adjustment up
+        consensus.nPowMaxAdjustDown = 34;
+        consensus.nPowMaxAdjustUp = 34;
         consensus.nPreBlossomPowTargetSpacing = Consensus::PRE_BLOSSOM_POW_TARGET_SPACING;
         consensus.nPostBlossomPowTargetSpacing = Consensus::POST_BLOSSOM_POW_TARGET_SPACING;
         consensus.nPowAllowMinDifficultyBlocksAfterHeight = 299187;
@@ -386,29 +330,31 @@ public:
         consensus.vUpgrades[Consensus::BASE_SPROUT].nProtocolVersion = 170002;
         consensus.vUpgrades[Consensus::BASE_SPROUT].nActivationHeight =
             Consensus::NetworkUpgrade::ALWAYS_ACTIVE;
-        consensus.vUpgrades[Consensus::UPGRADE_TESTDUMMY].nProtocolVersion = 170002;
+        consensus.vUpgrades[Consensus::UPGRADE_TESTDUMMY].nProtocolVersion = 175007;
         consensus.vUpgrades[Consensus::UPGRADE_TESTDUMMY].nActivationHeight =
             Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
-        consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nProtocolVersion = 170003;
-        consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight = 207500;
-        consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].hashActivationBlock =
-            uint256S("0000257c4331b098045023fcfbfa2474681f4564ab483f84e4e1ad078e4acf44");
-        consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nProtocolVersion = 170007;
-        consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight = 280000;
-        consensus.vUpgrades[Consensus::UPGRADE_SAPLING].hashActivationBlock =
-            uint256S("000420e7fcc3a49d729479fb0b560dd7b8617b178a08e9e389620a9d1dd6361a");
-        consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nProtocolVersion = 170008;
-        consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nActivationHeight = 584000;
-        consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].hashActivationBlock =
-            uint256S("00367515ef2e781b8c9358b443b6329572599edd02c59e8af67db9785122f298");
-        consensus.vUpgrades[Consensus::UPGRADE_HEARTWOOD].nProtocolVersion = 170010;
-        consensus.vUpgrades[Consensus::UPGRADE_HEARTWOOD].nActivationHeight = 903800;
-        consensus.vUpgrades[Consensus::UPGRADE_HEARTWOOD].hashActivationBlock =
-            uint256S("05688d8a0e9ff7c04f6f05e6d695dc5ab43b9c4803342d77ae360b2b27d2468e");
-        consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nProtocolVersion = 170012;
-        consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nActivationHeight = 1028500;
+        consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nProtocolVersion = 175013;
+        consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight = 200;
+        // ??? consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].hashActivationBlock =
+        //    uint256S("0000257c4331b098045023fcfbfa2474681f4564ab483f84e4e1ad078e4acf44");
+        consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nProtocolVersion = 175017;
+        consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight = 200;
+        // ??? consensus.vUpgrades[Consensus::UPGRADE_SAPLING].hashActivationBlock =
+        //    uint256S("000420e7fcc3a49d729479fb0b560dd7b8617b178a08e9e389620a9d1dd6361a");
+        consensus.vUpgrades[Consensus::UPGRADE_BZSHARES].nActivationHeight = 17500;
+        consensus.vUpgrades[Consensus::UPGRADE_BZSHARES].nProtocolVersion = 175018;	
+	consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nProtocolVersion = 175018;
+        consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nActivationHeight = Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
+        //consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].hashActivationBlock =
+        //    uint256S("00367515ef2e781b8c9358b443b6329572599edd02c59e8af67db9785122f298");
+        consensus.vUpgrades[Consensus::UPGRADE_HEARTWOOD].nProtocolVersion = 175020;
+        consensus.vUpgrades[Consensus::UPGRADE_HEARTWOOD].nActivationHeight = Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
+        //consensus.vUpgrades[Consensus::UPGRADE_HEARTWOOD].hashActivationBlock =
+        //    uint256S("05688d8a0e9ff7c04f6f05e6d695dc5ab43b9c4803342d77ae360b2b27d2468e");
+        consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nProtocolVersion = 175022;
+        consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nActivationHeight = Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
 
-        consensus.nFundingPeriodLength = consensus.nPostBlossomSubsidyHalvingInterval / 48;
+        //consensus.nFundingPeriodLength = consensus.nPostBlossomSubsidyHalvingInterval / 48;
 
         // guarantees the first 2 characters, when base58 encoded, are "tm"
         keyConstants.base58Prefixes[PUBKEY_ADDRESS]     = {0x1D,0x25};
@@ -432,82 +378,7 @@ public:
         keyConstants.bech32HRPs[SAPLING_EXTENDED_SPEND_KEY]   = "secret-extended-key-test";
         keyConstants.bech32HRPs[SAPLING_EXTENDED_FVK]         = "zxviewtestsapling";
 
-        // Testnet funding streams
-        {
-            std::vector<std::string> ecc_addresses = {
-                "t26ovBdKAJLtrvBsE2QGF4nqBkEuptuPFZz",
-                "t26ovBdKAJLtrvBsE2QGF4nqBkEuptuPFZz",
-                "t26ovBdKAJLtrvBsE2QGF4nqBkEuptuPFZz",
-                "t26ovBdKAJLtrvBsE2QGF4nqBkEuptuPFZz",
-                "t2NNHrgPpE388atmWSF4DxAb3xAoW5Yp45M",
-                "t2VMN28itPyMeMHBEd9Z1hm6YLkQcGA1Wwe",
-                "t2CHa1TtdfUV8UYhNm7oxbzRyfr8616BYh2",
-                "t2F77xtr28U96Z2bC53ZEdTnQSUAyDuoa67",
-                "t2ARrzhbgcpoVBDPivUuj6PzXzDkTBPqfcT",
-                "t278aQ8XbvFR15mecRguiJDQQVRNnkU8kJw",
-                "t2Dp1BGnZsrTXZoEWLyjHmg3EPvmwBnPDGB",
-                "t2KzeqXgf4ju33hiSqCuKDb8iHjPCjMq9iL",
-                "t2Nyxqv1BiWY1eUSiuxVw36oveawYuo18tr",
-                "t2DKFk5JRsVoiuinK8Ti6eM4Yp7v8BbfTyH",
-                "t2CUaBca4k1x36SC4q8Nc8eBoqkMpF3CaLg",
-                "t296SiKL7L5wvFmEdMxVLz1oYgd6fTfcbZj",
-                "t29fBCFbhgsjL3XYEZ1yk1TUh7eTusB6dPg",
-                "t2FGofLJXa419A76Gpf5ncxQB4gQXiQMXjK",
-                "t2ExfrnRVnRiXDvxerQ8nZbcUQvNvAJA6Qu",
-                "t28JUffLp47eKPRHKvwSPzX27i9ow8LSXHx",
-                "t2JXWPtrtyL861rFWMZVtm3yfgxAf4H7uPA",
-                "t2QdgbJoWfYHgyvEDEZBjHmgkr9yNJff3Hi",
-                "t2QW43nkco8r32ZGRN6iw6eSzyDjkMwCV3n",
-                "t2DgYDXMJTYLwNcxighQ9RCgPxMVATRcUdC",
-                "t2Bop7dg33HGZx3wunnQzi2R2ntfpjuti3M",
-                "t2HVeEwovcLq9RstAbYkqngXNEsCe2vjJh9",
-                "t2HxbP5keQSx7p592zWQ5bJ5GrMmGDsV2Xa",
-                "t2TJzUg2matao3mztBRJoWnJY6ekUau6tPD",
-                "t29pMzxmo6wod25YhswcjKv3AFRNiBZHuhj",
-                "t2QBQMRiJKYjshJpE6RhbF7GLo51yE6d4wZ",
-                "t2F5RqnqguzZeiLtYHFx4yYfy6pDnut7tw5",
-                "t2CHvyZANE7XCtg8AhZnrcHCC7Ys1jJhK13",
-                "t2BRzpMdrGWZJ2upsaNQv6fSbkbTy7EitLo",
-                "t2BFixHGQMAWDY67LyTN514xRAB94iEjXp3",
-                "t2Uvz1iVPzBEWfQBH1p7NZJsFhD74tKaG8V",
-                "t2CmFDj5q6rJSRZeHf1SdrowinyMNcj438n",
-                "t2ErNvWEReTfPDBaNizjMPVssz66aVZh1hZ",
-                "t2GeJQ8wBUiHKDVzVM5ZtKfY5reCg7CnASs",
-                "t2L2eFtkKv1G6j55kLytKXTGuir4raAy3yr",
-                "t2EK2b87dpPazb7VvmEGc8iR6SJ289RywGL",
-                "t2DJ7RKeZJxdA4nZn8hRGXE8NUyTzjujph9",
-                "t2K1pXo4eByuWpKLkssyMLe8QKUbxnfFC3H",
-                "t2TB4mbSpuAcCWkH94Leb27FnRxo16AEHDg",
-                "t2Phx4gVL4YRnNsH3jM1M7jE4Fo329E66Na",
-                "t2VQZGmeNomN8c3USefeLL9nmU6M8x8CVzC",
-                "t2RicCvTVTY5y9JkreSRv3Xs8q2K67YxHLi",
-                "t2JrSLxTGc8wtPDe9hwbaeUjCrCfc4iZnDD",
-                "t2Uh9Au1PDDSw117sAbGivKREkmMxVC5tZo",
-                "t2FDwoJKLeEBMTy3oP7RLQ1Fihhvz49a3Bv",
-                "t2FY18mrgtb7QLeHA8ShnxLXuW8cNQ2n1v8",
-                "t2L15TkDYum7dnQRBqfvWdRe8Yw3jVy9z7g",
-            };
-
-            // ZF and MG use the same address for each funding period
-            std::vector<std::string> zf_addresses(51, "t27eWDgjFYJGVXmzrXeVjnb5J3uXDM9xH9v");
-            std::vector<std::string> mg_addresses(51, "t2Gvxv2uNM7hbbACjNox4H6DjByoKZ2Fa3P");
-
-            consensus.AddZIP207FundingStream(
-                keyConstants,
-                Consensus::FS_ZIP214_BP,
-                consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nActivationHeight, 2796000,
-                ecc_addresses);
-            consensus.AddZIP207FundingStream(
-                keyConstants,
-                Consensus::FS_ZIP214_ZF,
-                consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nActivationHeight, 2796000,
-                zf_addresses);
-            consensus.AddZIP207FundingStream(
-                keyConstants,
-                Consensus::FS_ZIP214_MG,
-                consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nActivationHeight, 2796000,
-                mg_addresses);
-        }
+        
 
         // On testnet we activate this rule 6 blocks after Blossom activation. From block 299188 and
         // prior to Blossom activation, the testnet minimum-difficulty threshold was 15 minutes (i.e.
@@ -527,30 +398,40 @@ public:
         consensus.nFutureTimestampSoftForkHeight = consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nActivationHeight + 6;
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000000000025ba29b8d3");
+        consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000000000");
 
         pchMessageStart[0] = 0xfa;
         pchMessageStart[1] = 0x1a;
         pchMessageStart[2] = 0xf9;
         pchMessageStart[3] = 0xbf;
-        vAlertPubKey = ParseHex("044e7a1553392325c871c5ace5d6ad73501c66f4c185d6b0453cf45dec5a1322e705c672ac1a27ef7cdaf588c10effdf50ed5f95f85f2f54a5f6159fca394ed0c6");
-        nDefaultPort = 18233;
+        vAlertPubKey = ParseHex("048679fb891b15d0cada9692047fd0ae26ad8bfb83fabddbb50334ee5bc0683294deb410be20513c5af6e7b9cec717ade82b27080ee6ef9a245c36a795ab044bb3");
+        nDefaultPort = 11990;
         nPruneAfterHeight = 1000;
-
+        
+        const size_t N = 200, K = 9;
+        static_assert(equihash_parameters_acceptable(N, K));
+        consensus.nEquihashN = N;
+        consensus.nEquihashK = K;		
+	
+	eh_epoch_1 = eh200_9;
+        eh_epoch_2 = eh144_5;
+        eh_epoch_1_endblock = 80;
+        eh_epoch_2_startblock = 76;
+		
+	bze_pers_start_blocktime = 1550588400; // Human time (GMT): Tuesday, February 19, 2019 3:00:00 PM
+		
         genesis = CreateGenesisBlock(
-            1477648033,
-            uint256S("0x0000000000000000000000000000000000000000000000000000000000000006"),
-            ParseHex("00a6a51259c3f6732481e2d035197218b7a69504461d04335503cd69759b2d02bd2b53a9653f42cb33c608511c953673fa9da76170958115fe92157ad3bb5720d927f18e09459bf5c6072973e143e20f9bdf0584058c96b7c2234c7565f100d5eea083ba5d3dbaff9f0681799a113e7beff4a611d2b49590563109962baa149b628aae869af791f2f70bb041bd7ebfa658570917f6654a142b05e7ec0289a4f46470be7be5f693b90173eaaa6e84907170f32602204f1f4e1c04b1830116ffd0c54f0b1caa9a5698357bd8aa1f5ac8fc93b405265d824ba0e49f69dab5446653927298e6b7bdc61ee86ff31c07bde86331b4e500d42e4e50417e285502684b7966184505b885b42819a88469d1e9cf55072d7f3510f85580db689302eab377e4e11b14a91fdd0df7627efc048934f0aff8e7eb77eb17b3a95de13678004f2512293891d8baf8dde0ef69be520a58bbd6038ce899c9594cf3e30b8c3d9c7ecc832d4c19a6212747b50724e6f70f6451f78fd27b58ce43ca33b1641304a916186cfbe7dbca224f55d08530ba851e4df22baf7ab7078e9cbea46c0798b35a750f54103b0cdd08c81a6505c4932f6bfbd492a9fced31d54e98b6370d4c96600552fcf5b37780ed18c8787d03200963600db297a8f05dfa551321d17b9917edadcda51e274830749d133ad226f8bb6b94f13b4f77e67b35b71f52112ce9ba5da706ad9573584a2570a4ff25d29ab9761a06bdcf2c33638bf9baf2054825037881c14adf3816ba0cbd0fca689aad3ce16f2fe362c98f48134a9221765d939f0b49677d1c2447e56b46859f1810e2cf23e82a53e0d44f34dae932581b3b7f49eaec59af872cf9de757a964f7b33d143a36c270189508fcafe19398e4d2966948164d40556b05b7ff532f66f5d1edc41334ef742f78221dfe0c7ae2275bb3f24c89ae35f00afeea4e6ed187b866b209dc6e83b660593fce7c40e143beb07ac86c56f39e895385924667efe3a3f031938753c7764a2dbeb0a643fd359c46e614873fd0424e435fa7fac083b9a41a9d6bf7e284eee537ea7c50dd239f359941a43dc982745184bf3ee31a8dc850316aa9c6b66d6985acee814373be3458550659e1a06287c3b3b76a185c5cb93e38c1eebcf34ff072894b6430aed8d34122dafd925c46a515cca79b0269c92b301890ca6b0dc8b679cdac0f23318c105de73d7a46d16d2dad988d49c22e9963c117960bdc70ef0db6b091cf09445a516176b7f6d58ec29539166cc8a38bbff387acefffab2ea5faad0e8bb70625716ef0edf61940733c25993ea3de9f0be23d36e7cb8da10505f9dc426cd0e6e5b173ab4fff8c37e1f1fb56d1ea372013d075e0934c6919393cfc21395eea20718fad03542a4162a9ded66c814ad8320b2d7c2da3ecaf206da34c502db2096d1c46699a91dd1c432f019ad434e2c1ce507f91104f66f491fed37b225b8e0b2888c37276cfa0468fc13b8d593fd9a2675f0f5b20b8a15f8fa7558176a530d6865738ddb25d3426dab905221681cf9da0e0200eea5b2eba3ad3a5237d2a391f9074bf1779a2005cee43eec2b058511532635e0fea61664f531ac2b356f40db5c5d275a4cf5c82d468976455af4e3362cc8f71aa95e71d394aff3ead6f7101279f95bcd8a0fedce1d21cb3c9f6dd3b182fce0db5d6712981b651f29178a24119968b14783cafa713bc5f2a65205a42e4ce9dc7ba462bdb1f3e4553afc15f5f39998fdb53e7e231e3e520a46943734a007c2daa1eda9f495791657eefcac5c32833936e568d06187857ed04d7b97167ae207c5c5ae54e528c36016a984235e9c5b2f0718d7b3aa93c7822ccc772580b6599671b3c02ece8a21399abd33cfd3028790133167d0a97e7de53dc8ff"),
+            1550490600,
+            uint256S("0x0000000000000000000000000000000000000000000000000000000000000005"),
+            ParseHex("002472eeef9ec88bf6487438a82728c6f62cf99da923b87122c5d2cfa39e9649a480d2354f12b3d9ba0e03bb912cffe469a9f8bb60f1b31479228d889c1dd310b8b0afc615e24f8244553cedb2b1e58fdb70c72e0638e07706e96fc3d5ea23c3ad7a64a5517b3630441bfcae10039f87f994161425843db28225cdf42ee40d3685d98711e4bf0492e746926afaae48ac9fe066176ef33dc278931fc804e47e82f03c57bcf79ece050f738f9b9d189777be5553d90c7384c59352716c4b5a3a7f3873326b87bffab673f634220ab572db759617b2a424890fd861185a553aeee2e84e96643a94043e98b34c80238bb33a2fe7354b50917f99a51cf39d1382fd49c2aafc316b7ea483e77f53056fc23dfbf925e75bb96213d0a69eff13ee7cf8d1be24fdfe912e1f62ec5502172fbfa19cc46002432979b3daf92d62327bee131e98834f87341aafbe61a7ab1ffffc78920189e60afadb327ff192fab9d0fccc2f88953d95d10eafc9ff0b49b52567cba61aec55f8da9c14b8a6970a411a2f5dc8edf34d7a81864fd23fe52b81399557155d3a6029a69297740aa6b303d781122cc8f6f3d105e6fe084106c06999e3915a3dc9001867fc64bf9950139bdaa7675eb785a0d66f72d8da86df779ea2aa0cf5a38a66c9be9a7a0981f291ce7734cedef300b30fe94c1fce32dcc1b133b7899df43fe5fa909a66b404b68b5c9c4797d2b57eb7271865118227c91e1eed146cd1cf971248393c8764fe47e0f7cd94547570550d389ca18b9fc687d2b041db5e9fa081ce0a70050635e85a583598a47559b5e63dc3b68b9dd83fd27ced0ecfe0bca3d68b62f5d6e53ea238293a61cebb82b126d6efbba214758fc111e41b1b5a7fc14906ee8d4f0f0297803fcc0873fa3da36e4b403ba5138234bff12f47a4575c29ea755560c9e7835eef73380d7bd01b017b1a6b3780dceaec0aa23e2dd0be5ce43c892280521d43c2aae7a6518437483cddc70056816c58ef3406613765dd65b0ffb9f4a3c5085efe46035917825b07027b5fee4200f5a32ca402c039ea49ccbef48d5d0267ce5e25a539a5f937f3e14c683461438a94d09149ed53212b1b29053da475cf1076effe106293b67b120e85a8d2860e23cca9f1afe3a86dd493aa116d8415efab8bd7f2bf119870c3ad62ac9594f876d614b405c7affa71612955d0744661245bb62d9c29d12f912b3ff24d0caa39d9c0872a468a721f9767dd7bfcf40ca79a0815cb11e3ff89b13141c04ffcf2ccafd74b5588e37de8a46513b8033a6f9072f456e395d8094f0b459481ebcc4fc6c6df38238ae864ee52a598486718cc9a16d98b1832b10a11cd3efa4215a9845b35c414ee374a0cd672c954b36628e0cabb55e3159e92152304b19921d542e5f36368ed4256fb12ebccb8a83607efc577295640d5e401d177bd23dca0bc44ac46d834a40620e43b0431f06723bc462aac4758673e61c523b72e6d3d5e96973dadf5a5e170aa65c10a3888783cc15644c49b757d8b22e6c046f3a45e7b8b950d7f0cb76ed0ca041812d8146296665a3a39d80971801821aa9f6cc0f12c8d9b70b8462746a27ecb007e60da22519b710416704d23a5338b8ac551867a9d771f4f51ff83646068a3f597ea4cd3eb72ae736b6abcd2fc0de50381dea58c4d4479384495e79b2a80707bd7671dbeb1050edb2fdbde2a168d4b5b4cf226e0d277b0358ca7d1aae01cd34d08d72e604ad901ced89e84323d85054b9ed19390f1cc94ee09d390796bc3edaead0f7f14d10b1ca4ad6078f62631664c698cf89afd202859243abf4b345d115f14edf1696f91e73436db9426c84c9949a2f8a72806c5260fcf374153cbb832b03990bb3429d725390ca253b0b5349e42045832c6bd"),
             0x2007ffff, 4, 0);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x05a60a92d99d85997cce3b87616c089f6124d7342af37106edc76126334a2c38"));
-        assert(genesis.hashMerkleRoot == uint256S("0xc4eaa58879081de3c24a7b117ed2b28300e7ec4c4c1dff1d3f1268b7857a4ddb"));
+        assert(consensus.hashGenesisBlock == uint256S("0x03104faa85339763e81d5489c23325b536161fa2b47437c2f6b1b75b48c0d848"));
+        assert(genesis.hashMerkleRoot == uint256S("0xf40283d893eb46b35379a404cf06bd58c22ce05b32a4a641adec56e0792789ad"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("z.cash", "dnsseed.testnet.z.cash")); // Zcash
-        vSeeds.push_back(CDNSSeedData("zfnd.org", "testnet.seeder.zfnd.org")); // Zcash Foundation
-        vSeeds.push_back(CDNSSeedData("yolo.money", "testnet.is.yolo.money")); // gtank
+
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
@@ -561,39 +442,25 @@ public:
         fTestnetToBeDeprecatedFieldRPC = true;
 
 
-        checkpointData = (CCheckpointData) {
-            boost::assign::map_list_of
-            (0, consensus.hashGenesisBlock)
-            (38000, uint256S("0x001e9a2d2e2892b88e9998cf7b079b41d59dd085423a921fe8386cecc42287b8")),
-            1486897419,  // * UNIX timestamp of last checkpoint block
-            47163,       // * total number of transactions between genesis and last checkpoint
-            715          //   total number of tx / (checkpoint block height / (24 * 24))
-        };
+	checkpointData = (CCheckpointData) {
+		boost::assign::map_list_of
+		( 0, consensus.hashGenesisBlock),
+		genesis.nTime,
+		0,
+		0
+	};
 
         // Hardcoded fallback value for the Sprout shielded value pool balance
         // for nodes that have not reindexed since the introduction of monitoring
         // in #2795.
-        nSproutValuePoolCheckpointHeight = 440329;
-        nSproutValuePoolCheckpointBalance = 40000029096803;
+        nSproutValuePoolCheckpointHeight = 400;
+        nSproutValuePoolCheckpointBalance = 40000029096803; // no idea
         fZIP209Enabled = true;
-        hashSproutValuePoolCheckpointBlock = uint256S("000a95d08ba5dcbabe881fc6471d11807bcca7df5f1795c99f3ec4580db4279b");
+        hashSproutValuePoolCheckpointBlock = uint256S("000a95d08ba5dcbabe881fc6471d11807bcca7df5f1795c99f3ec4580db4279b"); // no idea
 
-        // Founders reward script expects a vector of 2-of-3 multisig addresses
-        vFoundersRewardAddress = {
-            "t2UNzUUx8mWBCRYPRezvA363EYXyEpHokyi", "t2N9PH9Wk9xjqYg9iin1Ua3aekJqfAtE543", "t2NGQjYMQhFndDHguvUw4wZdNdsssA6K7x2", "t2ENg7hHVqqs9JwU5cgjvSbxnT2a9USNfhy",
-            "t2BkYdVCHzvTJJUTx4yZB8qeegD8QsPx8bo", "t2J8q1xH1EuigJ52MfExyyjYtN3VgvshKDf", "t2Crq9mydTm37kZokC68HzT6yez3t2FBnFj", "t2EaMPUiQ1kthqcP5UEkF42CAFKJqXCkXC9", 
-            "t2F9dtQc63JDDyrhnfpzvVYTJcr57MkqA12", "t2LPirmnfYSZc481GgZBa6xUGcoovfytBnC", "t26xfxoSw2UV9Pe5o3C8V4YybQD4SESfxtp", "t2D3k4fNdErd66YxtvXEdft9xuLoKD7CcVo", 
-            "t2DWYBkxKNivdmsMiivNJzutaQGqmoRjRnL", "t2C3kFF9iQRxfc4B9zgbWo4dQLLqzqjpuGQ", "t2MnT5tzu9HSKcppRyUNwoTp8MUueuSGNaB", "t2AREsWdoW1F8EQYsScsjkgqobmgrkKeUkK", 
-            "t2Vf4wKcJ3ZFtLj4jezUUKkwYR92BLHn5UT", "t2K3fdViH6R5tRuXLphKyoYXyZhyWGghDNY", "t2VEn3KiKyHSGyzd3nDw6ESWtaCQHwuv9WC", "t2F8XouqdNMq6zzEvxQXHV1TjwZRHwRg8gC", 
-            "t2BS7Mrbaef3fA4xrmkvDisFVXVrRBnZ6Qj", "t2FuSwoLCdBVPwdZuYoHrEzxAb9qy4qjbnL", "t2SX3U8NtrT6gz5Db1AtQCSGjrpptr8JC6h", "t2V51gZNSoJ5kRL74bf9YTtbZuv8Fcqx2FH", 
-            "t2FyTsLjjdm4jeVwir4xzj7FAkUidbr1b4R", "t2EYbGLekmpqHyn8UBF6kqpahrYm7D6N1Le", "t2NQTrStZHtJECNFT3dUBLYA9AErxPCmkka", "t2GSWZZJzoesYxfPTWXkFn5UaxjiYxGBU2a", 
-            "t2RpffkzyLRevGM3w9aWdqMX6bd8uuAK3vn", "t2JzjoQqnuXtTGSN7k7yk5keURBGvYofh1d", "t2AEefc72ieTnsXKmgK2bZNckiwvZe3oPNL", "t2NNs3ZGZFsNj2wvmVd8BSwSfvETgiLrD8J", 
-            "t2ECCQPVcxUCSSQopdNquguEPE14HsVfcUn", "t2JabDUkG8TaqVKYfqDJ3rqkVdHKp6hwXvG", "t2FGzW5Zdc8Cy98ZKmRygsVGi6oKcmYir9n", "t2DUD8a21FtEFn42oVLp5NGbogY13uyjy9t", 
-            "t2UjVSd3zheHPgAkuX8WQW2CiC9xHQ8EvWp", "t2TBUAhELyHUn8i6SXYsXz5Lmy7kDzA1uT5", "t2Tz3uCyhP6eizUWDc3bGH7XUC9GQsEyQNc", "t2NysJSZtLwMLWEJ6MH3BsxRh6h27mNcsSy", 
-            "t2KXJVVyyrjVxxSeazbY9ksGyft4qsXUNm9", "t2J9YYtH31cveiLZzjaE4AcuwVho6qjTNzp", "t2QgvW4sP9zaGpPMH1GRzy7cpydmuRfB4AZ", "t2NDTJP9MosKpyFPHJmfjc5pGCvAU58XGa4", 
-            "t29pHDBWq7qN4EjwSEHg8wEqYe9pkmVrtRP", "t2Ez9KM8VJLuArcxuEkNRAkhNvidKkzXcjJ", "t2D5y7J5fpXajLbGrMBQkFg2mFN8fo3n8cX", "t2UV2wr1PTaUiybpkV3FdSdGxUJeZdZztyt", 
-            };
-        assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight(0));
+	nStartMasternodePayments = 1520121600; //2018-03-04
+        masternodeProtectionBlock = 17500;
+        masternodeCollateral = 10;
     }
 };
 static CTestNetParams testNetParams;
@@ -614,12 +481,8 @@ public:
         consensus.nMajorityEnforceBlockUpgrade = 750;
         consensus.nMajorityRejectBlockOutdated = 950;
         consensus.nMajorityWindow = 1000;
-        const size_t N = 48, K = 5;
-        static_assert(equihash_parameters_acceptable(N, K));
-        consensus.nEquihashN = N;
-        consensus.nEquihashK = K;
         consensus.powLimit = uint256S("0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f");
-        consensus.nPowAveragingWindow = 17;
+        consensus.nPowAveragingWindow = 13;
         assert(maxUint/UintToArith256(consensus.powLimit) >= consensus.nPowAveragingWindow);
         consensus.nPowMaxAdjustDown = 0; // Turn off adjustment down
         consensus.nPowMaxAdjustUp = 0; // Turn off adjustment up
@@ -627,30 +490,27 @@ public:
         consensus.nPostBlossomPowTargetSpacing = Consensus::POST_BLOSSOM_POW_TARGET_SPACING;
         consensus.nPowAllowMinDifficultyBlocksAfterHeight = 0;
         consensus.fPowNoRetargeting = true;
-        consensus.vUpgrades[Consensus::BASE_SPROUT].nProtocolVersion = 170002;
+        consensus.vUpgrades[Consensus::BASE_SPROUT].nProtocolVersion = 175007;
         consensus.vUpgrades[Consensus::BASE_SPROUT].nActivationHeight =
             Consensus::NetworkUpgrade::ALWAYS_ACTIVE;
-        consensus.vUpgrades[Consensus::UPGRADE_TESTDUMMY].nProtocolVersion = 170002;
+        consensus.vUpgrades[Consensus::UPGRADE_TESTDUMMY].nProtocolVersion = 175007;
         consensus.vUpgrades[Consensus::UPGRADE_TESTDUMMY].nActivationHeight =
             Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
-        consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nProtocolVersion = 170003;
+        consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nProtocolVersion = 175013;
         consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight =
             Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
-        consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nProtocolVersion = 170006;
+        consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nProtocolVersion = 175016;
         consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight =
             Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
-        consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nProtocolVersion = 170008;
+        consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nProtocolVersion = 175018;
         consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nActivationHeight =
             Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
-        consensus.vUpgrades[Consensus::UPGRADE_HEARTWOOD].nProtocolVersion = 170010;
+        consensus.vUpgrades[Consensus::UPGRADE_HEARTWOOD].nProtocolVersion = 175020;
         consensus.vUpgrades[Consensus::UPGRADE_HEARTWOOD].nActivationHeight =
             Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
-        consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nProtocolVersion = 170012;
+        consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nProtocolVersion = 175022;
         consensus.vUpgrades[Consensus::UPGRADE_CANOPY].nActivationHeight =
             Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
-
-        consensus.nFundingPeriodLength = consensus.nPostBlossomSubsidyHalvingInterval / 48;
-        // Defined funding streams can be enabled with node config flags.
 
         // These prefixes are the same as the testnet prefixes
         keyConstants.base58Prefixes[PUBKEY_ADDRESS]     = {0x1D,0x25};
@@ -672,21 +532,42 @@ public:
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");
 
+		consensus.fPowNoRetargeting=true;
+		consensus.nLWMAHeight=-1;
+		consensus.nPowLwmaTargetSpacing = 1 * 60;
+		consensus.nZawyLwmaAveragingWindow = 75;  //N=75 recommended by Zawy
+		consensus.nZawyLwmaAdjustedWeight = 2280;
+		consensus.nZawyLwmaMinDenominator = 10;
+		consensus.fZawyLwmaSolvetimeLimitation = true;
+		consensus.ZCnPowTargetSpacing = 2.5 * 60;
+
         pchMessageStart[0] = 0xaa;
         pchMessageStart[1] = 0xe8;
         pchMessageStart[2] = 0x3f;
         pchMessageStart[3] = 0x5f;
-        nDefaultPort = 18344;
+        nDefaultPort = 11990;
         nPruneAfterHeight = 1000;
+        const size_t N = 48, K = 5;
+        static_assert(equihash_parameters_acceptable(N, K));
+        consensus.nEquihashN = N;
+        consensus.nEquihashK = K;
+
+	eh_epoch_1 = eh48_5;
+        eh_epoch_2 = eh48_5;
+        eh_epoch_1_endblock = 1;
+        eh_epoch_2_startblock = 1;
+        
+        bze_pers_start_blocktime = 1550581200; // Tuesday, February 19, 2019 1:00:00 PM
 
         genesis = CreateGenesisBlock(
-            1296688602,
+            1482971059,
             uint256S("0x0000000000000000000000000000000000000000000000000000000000000009"),
-            ParseHex("01936b7db1eb4ac39f151b8704642d0a8bda13ec547d54cd5e43ba142fc6d8877cab07b3"),
+            ParseHex("05ffd6ad016271ade20cfce093959c3addb2079629f9f123c52ef920caa316531af5af3f"),
             0x200f0f0f, 4, 0);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x029f11d80ef9765602235e1bc9727e3eb6ba20839319f761fee920d63401e327"));
-        assert(genesis.hashMerkleRoot == uint256S("0xc4eaa58879081de3c24a7b117ed2b28300e7ec4c4c1dff1d3f1268b7857a4ddb"));
+        printf("GENESIS REG: %s\n", consensus.hashGenesisBlock.ToString().c_str());
+        assert(consensus.hashGenesisBlock == uint256S("7ca88ae305f04699bfa1823ec37ebd6c5873a7a9951a77edaa80eeeb6f136ac8"));
+        //assert(genesis.hashMerkleRoot == uint256S("0xc4eaa58879081de3c24a7b117ed2b28300e7ec4c4c1dff1d3f1268b7857a4ddb"));
 
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.
@@ -697,29 +578,20 @@ public:
         fMineBlocksOnDemand = true;
         fTestnetToBeDeprecatedFieldRPC = false;
 
-        checkpointData = (CCheckpointData){
-            boost::assign::map_list_of
-            ( 0, uint256S("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206")),
-            0,
-            0,
-            0
-        };
+	checkpointData = (CCheckpointData){
+		boost::assign::map_list_of
+		( 0, uint256S("0x0575f78ee8dc057deee78ef691876e3be29833aaee5e189bb0459c087451305a")),
+		0,
+		0,
+		0
+	};
 
-        // Founders reward script expects a vector of 2-of-3 multisig addresses
-        vFoundersRewardAddress = { "t2FwcEhFdNXuFMv1tcYwaBJtYVtMj8b1uTg" };
-        assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight(0));
     }
 
     void UpdateNetworkUpgradeParameters(Consensus::UpgradeIndex idx, int nActivationHeight)
     {
         assert(idx > Consensus::BASE_SPROUT && idx < Consensus::MAX_NETWORK_UPGRADES);
         consensus.vUpgrades[idx].nActivationHeight = nActivationHeight;
-    }
-
-    void UpdateFundingStreamParameters(Consensus::FundingStreamIndex idx, Consensus::FundingStream fs)
-    {
-        assert(idx >= Consensus::FIRST_FUNDING_STREAM && idx < Consensus::MAX_FUNDING_STREAMS);
-        consensus.vFundingStreams[idx] = fs;
     }
 
     void UpdateRegtestPow(
@@ -776,53 +648,12 @@ void SelectParams(const std::string& network)
 }
 
 
-// Block height must be >0 and <=last founders reward block height
-// Index variable i ranges from 0 - (vFoundersRewardAddress.size()-1)
-std::string CChainParams::GetFoundersRewardAddressAtHeight(int nHeight) const {
-    int preBlossomMaxHeight = consensus.GetLastFoundersRewardBlockHeight(0);
-    // zip208
-    // FounderAddressAdjustedHeight(height) :=
-    // height, if not IsBlossomActivated(height)
-    // BlossomActivationHeight + floor((height - BlossomActivationHeight) / BlossomPoWTargetSpacingRatio), otherwise
-    bool blossomActive = consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_BLOSSOM);
-    if (blossomActive) {
-        int blossomActivationHeight = consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nActivationHeight;
-        nHeight = blossomActivationHeight + ((nHeight - blossomActivationHeight) / Consensus::BLOSSOM_POW_TARGET_SPACING_RATIO);
-    }
-    assert(nHeight > 0 && nHeight <= preBlossomMaxHeight);
-    size_t addressChangeInterval = (preBlossomMaxHeight + vFoundersRewardAddress.size()) / vFoundersRewardAddress.size();
-    size_t i = nHeight / addressChangeInterval;
-    return vFoundersRewardAddress[i];
-}
-
-// Block height must be >0 and <=last founders reward block height
-// The founders reward address is expected to be a multisig (P2SH) address
-CScript CChainParams::GetFoundersRewardScriptAtHeight(int nHeight) const {
-    assert(nHeight > 0 && nHeight <= consensus.GetLastFoundersRewardBlockHeight(nHeight));
-
-    KeyIO keyIO(*this);
-    CTxDestination address = keyIO.DecodeDestination(GetFoundersRewardAddressAtHeight(nHeight).c_str());
-    assert(IsValidDestination(address));
-    assert(IsScriptDestination(address));
-    CScriptID scriptID = boost::get<CScriptID>(address); // address is a boost variant
-    CScript script = CScript() << OP_HASH160 << ToByteVector(scriptID) << OP_EQUAL;
-    return script;
-}
-
-std::string CChainParams::GetFoundersRewardAddressAtIndex(int i) const {
-    assert(i >= 0 && i < vFoundersRewardAddress.size());
-    return vFoundersRewardAddress[i];
-}
 
 void UpdateNetworkUpgradeParameters(Consensus::UpgradeIndex idx, int nActivationHeight)
 {
     regTestParams.UpdateNetworkUpgradeParameters(idx, nActivationHeight);
 }
 
-void UpdateFundingStreamParameters(Consensus::FundingStreamIndex idx, Consensus::FundingStream fs)
-{
-    regTestParams.UpdateFundingStreamParameters(idx, fs);
-}
 
 void UpdateRegtestPow(
     int64_t nPowMaxAdjustDown,
@@ -831,4 +662,22 @@ void UpdateRegtestPow(
     bool noRetargeting)
 {
     regTestParams.UpdateRegtestPow(nPowMaxAdjustDown, nPowMaxAdjustUp, powLimit, noRetargeting);
+}
+
+
+int validEHparameterList(EHparameters *ehparams, unsigned long blockheight, const CChainParams& params){
+    //if in overlap period, there will be two valid solutions, else 1.
+    //The upcoming version of EH is preferred so will always be first element
+    //returns number of elements in list
+    if(blockheight>=params.eh_epoch_2_start() && blockheight>params.eh_epoch_1_end()){
+        ehparams[0]=params.eh_epoch_2_params();
+        return 1;
+    }
+    if(blockheight<params.eh_epoch_2_start()){
+        ehparams[0]=params.eh_epoch_1_params();
+        return 1;
+    }
+    ehparams[0]=params.eh_epoch_2_params();
+    ehparams[1]=params.eh_epoch_1_params();
+    return 2;
 }

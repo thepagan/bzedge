@@ -14,7 +14,7 @@ HASH_LENGTH:=11
 DOWNLOAD_CONNECT_TIMEOUT:=10
 DOWNLOAD_RETRIES:=3
 CRATE_REGISTRY:=vendored-sources
-CRATE_ARCHIVE = $(SOURCES_PATH)/vendored-crates.tar.gz
+CRATE_ARCHIVE = $(SOURCES_PATH)/bzedge-vendored-crates.tar.gz
 
 host:=$(BUILD)
 ifneq ($(HOST),)

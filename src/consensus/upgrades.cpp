@@ -20,27 +20,32 @@ const struct NUInfo NetworkUpgradeInfo[Consensus::MAX_NETWORK_UPGRADES] = {
         /*.strInfo =*/ "Test dummy info",
     },
     {
-        /*.nBranchId =*/ 0x5ba81b19,
+        /*.nBranchId =*/ 0x6f77627a,
         /*.strName =*/ "Overwinter",
         /*.strInfo =*/ "See https://z.cash/upgrade/overwinter/ for details.",
     },
     {
-        /*.nBranchId =*/ 0x76b809bb,
+        /*.nBranchId =*/ 0x736c627a,
         /*.strName =*/ "Sapling",
         /*.strInfo =*/ "See https://z.cash/upgrade/sapling/ for details.",
     },
     {
-        /*.nBranchId =*/ 0x2bb40e60,
+        /*.nBranchId =*/ 0x736c627a,
+        /*.strName =*/ "BZShares",
+        /*.strInfo =*/ "Masternodes",
+    },
+    {
+        /*.nBranchId =*/ 0x427a6253,
         /*.strName =*/ "Blossom",
         /*.strInfo =*/ "See https://z.cash/upgrade/blossom/ for details.",
     },
     {
-        /*.nBranchId =*/ 0xf5b9230b,
+        /*.nBranchId =*/ 0x68627a77,
         /*.strName =*/ "Heartwood",
         /*.strInfo =*/ "See https://z.cash/upgrade/heartwood/ for details.",
     },
     {
-        /*.nBranchId =*/ 0xe9ff75a6,
+        /*.nBranchId =*/ 0x634e4279,
         /*.strName =*/ "Canopy",
         /*.strInfo =*/ "See https://z.cash/upgrade/canopy/ for details.",
     }

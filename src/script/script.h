@@ -171,6 +171,14 @@ enum opcodetype
     OP_NOP9 = 0xb8,
     OP_NOP10 = 0xb9,
 
+
+    // template matching params
+    OP_SMALLDATA = 0xf9,
+    OP_SMALLINTEGER = 0xfa,
+    OP_PUBKEYS = 0xfb,
+    OP_PUBKEYHASH = 0xfd,
+    OP_PUBKEY = 0xfe,
+
     OP_INVALIDOPCODE = 0xff,
 };
 
@@ -593,6 +601,7 @@ public:
      */
     unsigned int GetSigOpCount(const CScript& scriptSig) const;
 
+    bool IsNormalPaymentScript() const;
     // insightexplorer, there may be more script types in the future
     enum ScriptType : int {
         UNKNOWN = 0,
@@ -617,6 +626,8 @@ public:
     {
         return (size() > 0 && *begin() == OP_RETURN) || (size() > MAX_SCRIPT_SIZE);
     }
+
+    std::string ToString() const;
 
     void clear()
     {

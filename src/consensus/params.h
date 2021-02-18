@@ -32,6 +32,7 @@ enum UpgradeIndex : uint32_t {
     UPGRADE_TESTDUMMY,
     UPGRADE_OVERWINTER,
     UPGRADE_SAPLING,
+    UPGRADE_BZSHARES,
     UPGRADE_BLOSSOM,
     UPGRADE_HEARTWOOD,
     UPGRADE_CANOPY,
@@ -81,73 +82,16 @@ struct NetworkUpgrade {
     boost::optional<uint256> hashActivationBlock;
 };
 
-typedef boost::variant<libzcash::SaplingPaymentAddress, CScript> FundingStreamAddress;
-
-/**
- * Index into Params.vFundingStreams.
- *
- * Being array indices, these MUST be numbered consecutively.
- */
-enum FundingStreamIndex : uint32_t {
-    FS_ZIP214_BP,
-    FS_ZIP214_ZF,
-    FS_ZIP214_MG,
-    MAX_FUNDING_STREAMS,
-};
-const auto FIRST_FUNDING_STREAM = FS_ZIP214_BP;
-
-enum FundingStreamError {
-    CANOPY_NOT_ACTIVE,
-    ILLEGAL_RANGE,
-    INSUFFICIENT_ADDRESSES,
-};
-
-class FundingStream
-{
-private:
-    int startHeight;
-    int endHeight;
-    std::vector<FundingStreamAddress> addresses;
-
-    FundingStream(int startHeight, int endHeight, const std::vector<FundingStreamAddress>& addresses):
-        startHeight(startHeight), endHeight(endHeight), addresses(addresses) { }
-public:
-    FundingStream(const FundingStream& fs):
-        startHeight(fs.startHeight), endHeight(fs.endHeight), addresses(fs.addresses) { }
-
-    static boost::variant<FundingStream, FundingStreamError> ValidateFundingStream(
-        const Consensus::Params& params,
-        const int startHeight,
-        const int endHeight,
-        const std::vector<FundingStreamAddress>& addresses
-    );
-
-    static FundingStream ParseFundingStream(
-        const Consensus::Params& params,
-        const KeyConstants& keyConstants,
-        const int startHeight,
-        const int endHeight,
-        const std::vector<std::string>& strAddresses);
-
-    int GetStartHeight() const { return startHeight; };
-    int GetEndHeight() const { return endHeight; };
-    const std::vector<FundingStreamAddress>& GetAddresses() const {
-        return addresses;
-    };
-
-    FundingStreamAddress RecipientAddress(const Params& params, int nHeight) const;
-};
-
 /** ZIP208 block target interval in seconds. */
-static const unsigned int PRE_BLOSSOM_POW_TARGET_SPACING = 150;
-static const unsigned int POST_BLOSSOM_POW_TARGET_SPACING = 75;
-static_assert(PRE_BLOSSOM_POW_TARGET_SPACING > POST_BLOSSOM_POW_TARGET_SPACING, "Blossom target spacing must be less than pre-Blossom target spacing.");
+static const unsigned int PRE_BLOSSOM_POW_TARGET_SPACING = 60;
+static const unsigned int POST_BLOSSOM_POW_TARGET_SPACING = 60;
+static_assert(PRE_BLOSSOM_POW_TARGET_SPACING >= POST_BLOSSOM_POW_TARGET_SPACING, "Blossom target spacing must be less or equal to pre-Blossom target spacing.");
 static_assert(PRE_BLOSSOM_POW_TARGET_SPACING % POST_BLOSSOM_POW_TARGET_SPACING == 0, "Blossom target spacing must exactly divide pre-Blossom target spacing.");
 
 static const int BLOSSOM_POW_TARGET_SPACING_RATIO = PRE_BLOSSOM_POW_TARGET_SPACING / POST_BLOSSOM_POW_TARGET_SPACING;
 static_assert(BLOSSOM_POW_TARGET_SPACING_RATIO * POST_BLOSSOM_POW_TARGET_SPACING == PRE_BLOSSOM_POW_TARGET_SPACING, "Invalid BLOSSOM_POW_TARGET_SPACING_RATIO");
 
-static const unsigned int PRE_BLOSSOM_HALVING_INTERVAL = 840000;
+static const unsigned int PRE_BLOSSOM_HALVING_INTERVAL = 2102400;
 static const unsigned int PRE_BLOSSOM_REGTEST_HALVING_INTERVAL = 144;
 
 #define POST_BLOSSOM_HALVING_INTERVAL(preBlossomInterval) \
@@ -198,25 +142,12 @@ struct Params {
      */
     int HalvingHeight(int nHeight, int halvingIndex) const;
 
-    int GetLastFoundersRewardBlockHeight(int nHeight) const;
-
-    int FundingPeriodIndex(int fundingStreamStartHeight, int nHeight) const;
-
     /** Used to check majorities for block version upgrade */
     int nMajorityEnforceBlockUpgrade;
     int nMajorityRejectBlockOutdated;
     int nMajorityWindow;
     NetworkUpgrade vUpgrades[MAX_NETWORK_UPGRADES];
-
-    int nFundingPeriodLength;
-    boost::optional<FundingStream> vFundingStreams[MAX_FUNDING_STREAMS];
-    void AddZIP207FundingStream(
-        const KeyConstants& keyConstants,
-        FundingStreamIndex idx,
-        int startHeight,
-        int endHeight,
-        const std::vector<std::string>& addresses);
-
+    
     /**
      * Default block height at which the future timestamp soft fork rule activates.
      *
@@ -262,7 +193,6 @@ struct Params {
     unsigned int nEquihashK = 0;
     uint256 powLimit;
     boost::optional<uint32_t> nPowAllowMinDifficultyBlocksAfterHeight;
-    bool fPowNoRetargeting;
     int64_t nPowAveragingWindow;
     int64_t nPowMaxAdjustDown;
     int64_t nPowMaxAdjustUp;
@@ -275,6 +205,17 @@ struct Params {
     int64_t MaxActualTimespan(int nHeight) const;
 
     uint256 nMinimumChainWork;
+    
+    //LWMA POW targeting parameters
+    bool fPowNoRetargeting;
+    unsigned int nLWMAHeight;
+    int64_t nPowLwmaTargetSpacing;
+    int64_t nZawyLwmaAveragingWindow;
+    int64_t nZawyLwmaAdjustedWeight; 
+    int64_t nZawyLwmaMinDenominator;
+    bool fZawyLwmaSolvetimeLimitation;
+    int64_t ZCnPowTargetSpacing; //legacy target spacing
+    
 };
 
 } // namespace Consensus

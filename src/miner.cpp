@@ -11,7 +11,6 @@
 #include "amount.h"
 #include "chainparams.h"
 #include "consensus/consensus.h"
-#include "consensus/funding.h"
 #include "consensus/upgrades.h"
 #include "consensus/validation.h"
 #ifdef ENABLE_MINING
@@ -21,6 +20,7 @@
 #include "key_io.h"
 #include "main.h"
 #include "metrics.h"
+#include "masternode-sync.h"
 #include "net.h"
 #include "zcash/Note.hpp"
 #include "policy/policy.h"
@@ -33,6 +33,8 @@
 #include "util.h"
 #include "utilmoneystr.h"
 #include "validationinterface.h"
+#include "masternode-payments.h"
+#include "spork.h"
 
 #include <librustzcash.h>
 
@@ -179,35 +181,35 @@ public:
         }
     }
 
-    CAmount SetFoundersRewardAndGetMinerValue(void* ctx) const {
+    CAmount SetMasternodeRewardAndGetMinerValue(void* ctx) const {
         auto block_subsidy = GetBlockSubsidy(nHeight, chainparams.GetConsensus());
-        auto miner_reward = block_subsidy; // founders' reward or funding stream amounts will be subtracted below
+        auto miner_reward = block_subsidy; // masternode's reward will be subtracted below
 
-        if (nHeight > 0) {
-            if (chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_CANOPY)) {
-                auto fundingStreamElements = Consensus::GetActiveFundingStreamElements(
-                    nHeight,
-                    block_subsidy,
-                    chainparams.GetConsensus());
+        if (nHeight >= chainparams.GetMasternodeProtectionBlock())
+        {
+            auto vMasternodeReward = GetMasternodePayment(nHeight, block_subsidy);
+            miner_reward -= vMasternodeReward;
 
-                for (Consensus::FundingStreamElement fselem : fundingStreamElements) {
-                    miner_reward -= fselem.second;
-                    bool added = boost::apply_visitor(AddFundingStreamValueToTx(mtx, ctx, fselem.second, GetZip212Flag()), fselem.first);
-                    if (!added) {
-                        librustzcash_sapling_proving_ctx_free(ctx);
-                        throw new std::runtime_error("Failed to add funding stream output.");
-                    }
+            CScript payee;
+            KeyIO keyIO(Params());
+
+            //spork
+            if(!masternodePayments.GetBlockPayee(nHeight, payee)){
+                //no masternode detected
+                CMasternode* winningNode = mnodeman.GetCurrentMasterNode(1);
+                if (winningNode)
+                {
+                    payee = GetScriptForDestination(winningNode->pubKeyCollateralAddress.GetID());    
                 }
-            } else if (nHeight <= chainparams.GetConsensus().GetLastFoundersRewardBlockHeight(nHeight)) {
-                // Founders reward is 20% of the block subsidy
-                auto vFoundersReward = miner_reward / 5;
-                // Take some reward away from us
-                miner_reward -= vFoundersReward;
-                // And give it to the founders
-                mtx.vout.push_back(CTxOut(vFoundersReward, chainparams.GetFoundersRewardScriptAtHeight(nHeight)));
-            } else {
-                // Founders reward ends without replacement if Canopy is not activated by the
-                // last Founders' Reward block height + 1.
+                else
+                {
+                    LogPrint("masternode","CreateNewBlock: Failed to detect masternode to pay\n");
+                }
+            }
+
+            if (!payee.empty())
+            {
+                mtx.vout.push_back(CTxOut(vMasternodeReward, payee));
             }
         }
 
@@ -245,7 +247,7 @@ public:
     void operator()(const libzcash::SaplingPaymentAddress &pa) const {
         auto ctx = librustzcash_sapling_proving_ctx_init();
 
-        auto miner_reward = SetFoundersRewardAndGetMinerValue(ctx);
+        auto miner_reward = SetMasternodeRewardAndGetMinerValue(ctx);
         mtx.valueBalance -= miner_reward;
 
         uint256 ovk;
@@ -273,7 +275,7 @@ public:
         // Miner output will be vout[0]; Founders' Reward & funding stream outputs
         // will follow.
         mtx.vout.resize(1);
-        auto value = SetFoundersRewardAndGetMinerValue(ctx);
+        auto value = SetMasternodeRewardAndGetMinerValue(ctx);
 
         // Now fill in the miner's output.
         mtx.vout[0] = CTxOut(value, coinbaseScript->reserveScript);
@@ -583,6 +585,9 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const MinerAddre
             AddOutputsToCoinbaseTxAndSign(txNew, chainparams, nHeight, nFees),
             minerAddress);
 
+        // Make payee
+        pblock->payee = txNew.vout[txNew.vout.size() - 1].scriptPubKey;
+
         txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
 
         pblock->vtx[0] = txNew;
@@ -695,7 +700,7 @@ static bool ProcessBlockFound(const CBlock* pblock, const CChainParams& chainpar
     {
         LOCK(cs_main);
         if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash())
-            return error("ZcashMiner: generated block is stale");
+            return error("BZEdgeMiner: generated block is stale");
     }
 
     // Inform about the new block
@@ -704,7 +709,7 @@ static bool ProcessBlockFound(const CBlock* pblock, const CChainParams& chainpar
     // Process this block the same as if we had received it from another node
     CValidationState state;
     if (!ProcessNewBlock(state, chainparams, NULL, pblock, true, NULL))
-        return error("ZcashMiner: ProcessNewBlock, block not accepted");
+        return error("BZEdgeMiner: ProcessNewBlock, block not accepted");
 
     TrackMinedBlock(pblock->GetHash());
 
@@ -713,9 +718,9 @@ static bool ProcessBlockFound(const CBlock* pblock, const CChainParams& chainpar
 
 void static BitcoinMiner(const CChainParams& chainparams)
 {
-    LogPrintf("ZcashMiner started\n");
+    LogPrintf("BZEdgeMiner started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    RenameThread("zcash-miner");
+    RenameThread(strprintf("%s-miner", COIN_NICKNAME).c_str());
 
     // Each thread has its own counter
     unsigned int nExtraNonce = 0;
@@ -770,21 +775,53 @@ void static BitcoinMiner(const CChainParams& chainparams)
             unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
             CBlockIndex* pindexPrev = chainActive.Tip();
 
+           // Get the height of current tip
+            int nHeight = chainActive.Height();
+            int nTime = pindexPrev->nTime;
+            if (nHeight == -1) {
+                LogPrintf("Error in BZEdgeMiner: chainActive.Height() returned -1\n");
+                return;
+            }
+
+            // Get equihash parameters for the next block to be mined.
+            EHparameters ehparams[MAX_EH_PARAM_LIST_LEN]; //allocate on-stack space for parameters list
+            validEHparameterList(ehparams,nHeight+1,chainparams);
+
+            unsigned int n = ehparams[0].n;
+            unsigned int k = ehparams[0].k;
+            LogPrint("pow", "Using Equihash solver \"%s\" with n = %u, k = %u\n", solver, n, k);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(chainparams, minerAddress));
             if (!pblocktemplate.get())
             {
                 if (GetArg("-mineraddress", "").empty()) {
-                    LogPrintf("Error in ZcashMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
+                    LogPrintf("Error in BZEdgeMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
                 } else {
                     // Should never reach here, because -mineraddress validity is checked in init.cpp
-                    LogPrintf("Error in ZcashMiner: Invalid -mineraddress\n");
+                    LogPrintf("Error in BZEdgeMiner: Invalid -mineraddress\n");
                 }
                 return;
             }
             CBlock *pblock = &pblocktemplate->block;
             IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
-            LogPrintf("Running ZcashMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
+            LogPrintf("Running BZEdgeMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
                 ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
 
             //
@@ -794,10 +831,16 @@ void static BitcoinMiner(const CChainParams& chainparams)
             arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
 
             while (true) {
-                // Hash state
+                // Hash state Zcash way
                 eh_HashState state;
                 EhInitialiseState(n, k, state);
 
+                // Hash state BZEdge way
+/*
+                crypto_generichash_blake2b_state state;
+                // EhInitialiseState(n, k, state);
+                EhInitialiseStateEx(n, k, state, nStart);
+*/
                 // I = the block header minus nonce and solution.
                 CEquihashInput I{*pblock};
                 CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
@@ -829,7 +872,7 @@ void static BitcoinMiner(const CChainParams& chainparams)
 
                     // Found a solution
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);
-                    LogPrintf("ZcashMiner:\n");
+                    LogPrintf("BZEdgeMiner:\n");
                     LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", pblock->GetHash().GetHex(), hashTarget.GetHex());
                     if (ProcessBlockFound(pblock, chainparams)) {
                         // Ignore chain updates caused by us
@@ -928,14 +971,14 @@ void static BitcoinMiner(const CChainParams& chainparams)
     {
         miningTimer.stop();
         c.disconnect();
-        LogPrintf("ZcashMiner terminated\n");
+        LogPrintf("BZEdgeMiner terminated\n");
         throw;
     }
     catch (const std::runtime_error &e)
     {
         miningTimer.stop();
         c.disconnect();
-        LogPrintf("ZcashMiner runtime error: %s\n", e.what());
+        LogPrintf("BZEdgeMiner runtime error: %s\n", e.what());
         return;
     }
     miningTimer.stop();

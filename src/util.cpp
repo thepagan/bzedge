@@ -97,8 +97,26 @@ namespace boost {
 
 using namespace std;
 
-const char * const BITCOIN_CONF_FILENAME = "zcash.conf";
-const char * const BITCOIN_PID_FILENAME = "zcashd.pid";
+const char * const BITCOIN_CONF_FILENAME = COIN_CONF_FILENAME.c_str();
+const char * const BITCOIN_PID_FILENAME = COIN_PID_FILENAME.c_str();
+
+// SwiftX
+bool fEnableSwiftTX = true;
+int nSwiftTXDepth = 5;
+bool fMasterNode = false;
+string strMasterNodePrivKey = "";
+string strMasterNodeAddr = "";
+bool fLiteMode = false;
+int nZcashSendRounds = 10;
+int nAnonymizeZcashAmount = 1000;
+int nLiquidityProvider = 0;
+/** Spork enforcement enabled time */
+int64_t enforceMasternodePaymentsTime = 4085657524;
+bool fSucessfullyLoaded = false;
+bool fEnableZcashSend = false;
+/** All denominations used by obfuscation */
+std::vector<int64_t> obfuScationDenominations;
+string strBudgetMode = "";
 
 map<string, string> mapArgs;
 map<string, vector<string> > mapMultiArgs;
@@ -219,7 +237,7 @@ static std::string FormatException(const std::exception* pex, const char* pszThr
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(NULL, pszModule, sizeof(pszModule));
 #else
-    const char* pszModule = "Zcash";
+    const char* pszModule = COIN_NAME.c_str();
 #endif
     if (pex)
         return strprintf(
@@ -244,7 +262,7 @@ fs::path GetDefaultDataDir()
     // Unix: ~/.zcash
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Zcash";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / fs::path(std::string(COIN_NAME));
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -256,10 +274,10 @@ fs::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     TryCreateDirectory(pathRet);
-    return pathRet / "Zcash";
+    return pathRet / fs::path(std::string(COIN_NAME));
 #else
     // Unix
-    return pathRet / ".zcash";
+    return pathRet / fs::path(std::string("." + COIN_NICKNAME));
 #endif
 #endif
 }
@@ -272,6 +290,7 @@ static CCriticalSection csPathCached;
 static fs::path ZC_GetDefaultBaseParamsDir()
 {
     // Copied from GetDefaultDataDir and adapter for zcash params.
+    // The best practice is to leave zcash params at default location, to keep them reusable by multiple coin daemons
 
     // Windows < Vista: C:\Documents and Settings\Username\Application Data\ZcashParams
     // Windows >= Vista: C:\Users\Username\AppData\Roaming\ZcashParams
@@ -385,13 +404,20 @@ fs::path GetConfigFile(const std::string& confPath)
     return pathConfigFile;
 }
 
+fs::path  GetMasternodeConfigFile()
+{
+    fs::path pathConfigFile(GetArg("-mnconf", "masternode.conf"));
+    if (!pathConfigFile.is_complete()) pathConfigFile = GetDataDir(false) / pathConfigFile;
+    return pathConfigFile;
+}
+
 void ReadConfigFile(const std::string& confPath,
                     map<string, string>& mapSettingsRet,
                     map<string, vector<string> >& mapMultiSettingsRet)
 {
     fs::ifstream streamConfig(GetConfigFile(confPath));
     if (!streamConfig.good())
-        throw missing_zcash_conf();
+        throw missing_coin_conf();
 
     set<string> setOptions;
     setOptions.insert("*");
@@ -429,7 +455,7 @@ void ReadConfigFile(const std::string& confPath,
         }
 
         InterpretNegativeSetting(strKey, strValue);
-        // Don't overwrite existing settings so command line settings override zcash.conf
+        // Don't overwrite existing settings so command line settings override .conf file
         if (mapSettingsRet.count(strKey) == 0)
             mapSettingsRet[strKey] = strValue;
         mapMultiSettingsRet[strKey].push_back(strValue);
@@ -666,7 +692,8 @@ void SetThreadPriority(int nPriority)
 std::string PrivacyInfo()
 {
     return "\n" +
-           FormatParagraph(strprintf(_("In order to ensure you are adequately protecting your privacy when using Zcash, please see <%s>."),
+           FormatParagraph(strprintf(_("In order to ensure you are adequately protecting your privacy when using %s, please see <%s>."),
+                                     COIN_NAME,
                                      "https://z.cash/support/security/")) + "\n";
 }
 

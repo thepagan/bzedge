@@ -96,11 +96,11 @@ TESTS =
 BENCHMARKS =
 
 if BUILD_BITCOIND
-  bin_PROGRAMS += zcashd
+  bin_PROGRAMS += bzedged
 endif
 
 if BUILD_BITCOIN_UTILS
-  bin_PROGRAMS += zcash-cli zcash-tx
+  bin_PROGRAMS += bzedge-cli bzedge-tx
 endif
 
 LIBZCASH_H = \
@@ -121,6 +121,7 @@ LIBZCASH_H = \
 .PHONY: FORCE cargo-build check-symbols check-security
 # bitcoin core #
 BITCOIN_CORE_H = \
+  activemasternode.h \
   addressindex.h \
   addrman.h \
   alert.h \
@@ -146,12 +147,13 @@ BITCOIN_CORE_H = \
   compat/sanity.h \
   compressor.h \
   consensus/consensus.h \
-  consensus/funding.h \
   consensus/params.h \
   consensus/upgrades.h \
   consensus/validation.h \
   core_io.h \
   core_memusage.h \
+  obfuscation.h \
+  obfuscation-relay.h \
   deprecation.h \
   experimental_features.h \
   fs.h \
@@ -159,6 +161,7 @@ BITCOIN_CORE_H = \
   httprpc.h \
   httpserver.h \
   init.h \
+  swifttx.h \
   key.h \
   key_constants.h \
   key_io.h \
@@ -168,6 +171,12 @@ BITCOIN_CORE_H = \
   logging.h \
   main.h \
   memusage.h \
+  masternode.h \
+  masternode-payments.h \
+  masternode-budget.h \
+  masternode-sync.h \
+  masternodeman.h \
+  masternodeconfig.h \
   merkleblock.h \
   metrics.h \
   miner.h \
@@ -200,6 +209,8 @@ BITCOIN_CORE_H = \
   script/ismine.h \
   serialize.h \
   spentindex.h \
+  spork.h \
+  sporkdb.h \
   streams.h \
   support/allocators/secure.h \
   support/allocators/zeroafterfree.h \
@@ -252,7 +263,7 @@ obj/build.h: FORCE
 	  $(abs_top_srcdir)
 libbitcoin_util_a-clientversion.$(OBJEXT): obj/build.h
 
-# server: zcashd
+# server: bzedged
 libbitcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libbitcoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_server_a_SOURCES = \
@@ -282,6 +293,8 @@ libbitcoin_server_a_SOURCES = \
   pow.cpp \
   rest.cpp \
   rpc/blockchain.cpp \
+  rpc/masternode.cpp \
+  rpc/masternode-budget.cpp \
   rpc/mining.cpp \
   rpc/misc.cpp \
   rpc/net.cpp \
@@ -289,6 +302,7 @@ libbitcoin_server_a_SOURCES = \
   rpc/server.cpp \
   script/sigcache.cpp \
   script/ismine.cpp \
+  sporkdb.cpp \
   timedata.cpp \
   torcontrol.cpp \
   txdb.cpp \
@@ -307,10 +321,13 @@ libbitcoin_zmq_a_SOURCES = \
   zmq/zmqpublishnotifier.cpp
 endif
 
-# wallet: zcashd, but only linked when wallet enabled
+# wallet: bzedged, but only linked when wallet enabled
 libbitcoin_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_wallet_a_SOURCES = \
+  activemasternode.cpp \
+  obfuscation.cpp \
+  obfuscation-relay.cpp \
   zcbenchmarks.cpp \
   zcbenchmarks.h \
   wallet/asyncrpcoperation_common.cpp \
@@ -320,6 +337,13 @@ libbitcoin_wallet_a_SOURCES = \
   wallet/asyncrpcoperation_shieldcoinbase.cpp \
   wallet/crypter.cpp \
   wallet/db.cpp \
+  swifttx.cpp \
+  masternode.cpp \
+  masternode-budget.cpp \
+  masternode-payments.cpp \
+  masternode-sync.cpp \
+  masternodeconfig.cpp \
+  masternodeman.cpp \
   wallet/paymentdisclosure.cpp \
   wallet/paymentdisclosuredb.cpp \
   wallet/rpcdisclosure.cpp \
@@ -365,7 +389,7 @@ crypto_libbitcoin_crypto_a_SOURCES += \
   ${EQUIHASH_TROMP_SOURCES}
 endif
 
-# common: shared between zcashd and non-server tools
+# common: shared between bzedged and non-server tools
 libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_common_a_SOURCES = \
@@ -376,7 +400,6 @@ libbitcoin_common_a_SOURCES = \
   chainparams.cpp \
   coins.cpp \
   compressor.cpp \
-  consensus/funding.cpp \
   consensus/params.cpp \
   consensus/upgrades.cpp \
   core_read.cpp \
@@ -397,6 +420,8 @@ libbitcoin_common_a_SOURCES = \
   script/script_error.cpp \
   script/sign.cpp \
   script/standard.cpp \
+  spork.cpp \
+  sporkdb.cpp \
   transaction_builder.cpp \
   utiltest.cpp \
   warnings.cpp \
@@ -433,7 +458,7 @@ if GLIBC_BACK_COMPAT
 libbitcoin_util_a_SOURCES += compat/glibc_compat.cpp
 endif
 
-# cli: zcash-cli
+# cli: bzedge-cli
 libbitcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_cli_a_SOURCES = \
@@ -445,16 +470,16 @@ nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # bitcoind binary #
-zcashd_SOURCES = bitcoind.cpp
-zcashd_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-zcashd_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-zcashd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+bzedged_SOURCES = bitcoind.cpp
+bzedged_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+bzedged_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+bzedged_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-zcashd_SOURCES += bitcoind-res.rc
+bzedged_SOURCES += bitcoind-res.rc
 endif
 
-zcashd_LDADD = \
+bzedged_LDADD = \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_WALLET) \
   $(LIBBITCOIN_COMMON) \
@@ -469,7 +494,7 @@ zcashd_LDADD = \
   $(LIBMEMENV) \
   $(LIBSECP256K1)
 
-zcashd_LDADD += \
+bzedged_LDADD += \
   $(BOOST_LIBS) \
   $(BDB_LIBS) \
   $(EVENT_PTHREADS_LIBS) \
@@ -479,16 +504,16 @@ zcashd_LDADD += \
   $(LIBZCASH_LIBS)
 
 # bitcoin-cli binary #
-zcash_cli_SOURCES = bitcoin-cli.cpp
-zcash_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
-zcash_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-zcash_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+bzedge_cli_SOURCES = bitcoin-cli.cpp
+bzedge_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
+bzedge_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+bzedge_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-zcash_cli_SOURCES += bitcoin-cli-res.rc
+bzedge_cli_SOURCES += bitcoin-cli-res.rc
 endif
 
-zcash_cli_LDADD = \
+bzedge_cli_LDADD = \
   $(LIBBITCOIN_CLI) \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_UTIL) \
@@ -500,18 +525,18 @@ zcash_cli_LDADD = \
   $(LIBZCASH_LIBS)
 #
 
-# zcash-tx binary #
-zcash_tx_SOURCES = bitcoin-tx.cpp
-zcash_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-zcash_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-zcash_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+# bzedge-tx binary #
+bzedge_tx_SOURCES = bitcoin-tx.cpp
+bzedge_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+bzedge_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+bzedge_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-zcash_tx_SOURCES += bitcoin-tx-res.rc
+bzedge_tx_SOURCES += bitcoin-tx-res.rc
 endif
 
-# FIXME: Is libzcash needed for zcash_tx?
-zcash_tx_LDADD = \
+# FIXME: Is libzcash needed for bzedge_tx?
+bzedge_tx_LDADD = \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
@@ -521,7 +546,7 @@ zcash_tx_LDADD = \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBZCASH_LIBS)
 
-zcash_tx_LDADD += $(BOOST_LIBS)
+bzedge_tx_LDADD += $(BOOST_LIBS)
 #
 
 # zcash protocol primitives #
@@ -626,8 +651,4 @@ endif
 if ENABLE_TESTS
 include Makefile.test.include
 include Makefile.gtest.include
-endif
-
-if ENABLE_BENCH
-include Makefile.bench.include
 endif

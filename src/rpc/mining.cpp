@@ -6,7 +6,6 @@
 #include "amount.h"
 #include "chainparams.h"
 #include "consensus/consensus.h"
-#include "consensus/funding.h"
 #include "consensus/validation.h"
 #include "core_io.h"
 #ifdef ENABLE_MINING
@@ -33,6 +32,8 @@
 #include <boost/shared_ptr.hpp>
 
 #include <univalue.h>
+
+#include "masternodeman.h"
 
 using namespace std;
 
@@ -201,8 +202,8 @@ UniValue generate(const UniValue& params, bool fHelp)
     }
     unsigned int nExtraNonce = 0;
     UniValue blockHashes(UniValue::VARR);
-    unsigned int n = Params().GetConsensus().nEquihashN;
-    unsigned int k = Params().GetConsensus().nEquihashK;
+    unsigned int n = Params().EquihashN();
+    unsigned int k = Params().EquihashK();
     while (nHeight < nHeightEnd)
     {
         std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(Params(), minerAddress));
@@ -417,10 +418,6 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
             "It returns data needed to construct a block to work on.\n"
             "See https://en.bitcoin.it/wiki/BIP_0022 for full specification.\n"
 
-            "\nTo obtain information about founder's reward or funding stream\n"
-            "amounts, use 'getblocksubsidy HEIGHT' passing in the height returned\n"
-            "by this API.\n"
-
             "\nArguments:\n"
             "1. \"jsonrequestobject\"       (string, optional) A json object in the following spec\n"
             "     {\n"
@@ -469,6 +466,14 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
             "  \"curtime\" : ttt,                  (numeric) current timestamp in seconds since epoch (Jan 1 1970 GMT)\n"
             "  \"bits\" : \"xxx\",                 (string) compressed target of next block\n"
             "  \"height\" : n                      (numeric) The height of the next block\n"
+            "  \"payee\" : \"xxx\",                (string) required payee for the next block\n"
+            "  \"payee_amount\" : n,               (numeric) required amount to pay\n"
+            "  \"votes\" : [\n                     (array) show vote candidates\n"
+            "        { ... }                       (json object) vote candidate\n"
+            "        ,...\n"
+            "  ],\n"
+            "  \"masternode_payments\" : true|false,         (boolean) true, if masternode payments are enabled\n"
+            "  \"enforce_masternode_payments\" : true|false  (boolean) true, if masternode payments are enforced\n"
             "}\n"
 
             "\nExamples:\n"
@@ -485,7 +490,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
             throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Wallet disabled and -mineraddress not set");
         }
 #else
-        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "zcashd compiled without wallet and -mineraddress not set");
+        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "bzedged compiled without wallet and -mineraddress not set");
 #endif
     }
 
@@ -543,10 +548,10 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
 
     if (vNodes.empty())
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Zcash is not connected!");
+        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "BZEdge is not connected!");
 
     if (IsInitialBlockDownload(Params()))
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Zcash is downloading blocks...");
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "BZEdge is downloading blocks...");
 
     static unsigned int nTransactionsUpdatedLast;
 
@@ -676,13 +681,6 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         entry.pushKV("sigops", pblocktemplate->vTxSigOps[index_in_template]);
 
         if (tx.IsCoinBase()) {
-            // Show founders' reward if it is required
-            auto nextHeight = pindexPrev->nHeight+1;
-            bool canopyActive = consensus.NetworkUpgradeActive(nextHeight, Consensus::UPGRADE_CANOPY);
-            if (!canopyActive && nextHeight > 0 && nextHeight <= consensus.GetLastFoundersRewardBlockHeight(nextHeight)) {
-                CAmount nBlockSubsidy = GetBlockSubsidy(nextHeight, consensus);
-                entry.pushKV("foundersreward", nBlockSubsidy / 5);
-            }
             entry.pushKV("required", true);
             txCoinbase = entry;
         } else {
@@ -703,6 +701,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         aMutable.push_back("prevblock");
     }
 
+    UniValue aVotes(UniValue::VARR);
     UniValue result(UniValue::VOBJ);
     result.pushKV("capabilities", aCaps);
     result.pushKV("version", pblock->nVersion);
@@ -728,6 +727,25 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     result.pushKV("curtime", pblock->GetBlockTime());
     result.pushKV("bits", strprintf("%08x", pblock->nBits));
     result.pushKV("height", (int64_t)(pindexPrev->nHeight+1));
+    result.pushKV("votes", aVotes);
+
+    bool shouldPayMN = ((int64_t)(pindexPrev->nHeight+1) >= Params().GetMasternodeProtectionBlock()) && mnodeman.HasEnabledMasternode();
+
+    if((pblock->payee != CScript()) && shouldPayMN) {
+        CTxDestination address1;
+        ExtractDestination(pblock->payee, address1);
+        KeyIO keyIO(Params());
+        std::string str_address1 = keyIO.EncodeDestination(address1);
+        result.pushKV("payee", str_address1);
+        CAmount val = pblock->vtx[0].vout[pblock->vtx[0].vout.size() - 1].nValue;
+        result.pushKV("payee_amount", (int64_t)val);
+    } else {
+        result.pushKV("payee", "");
+        result.pushKV("payee_amount", "");
+    }
+
+    result.pushKV("masternode_payments", shouldPayMN ? "true" : "false");
+    result.pushKV("enforce_masternode_payments", true);
 
     return result;
 }
@@ -888,17 +906,7 @@ UniValue getblocksubsidy(const UniValue& params, bool fHelp)
             "\nResult:\n"
             "{\n"
             "  \"miner\" : x.xxx,              (numeric) The mining reward amount in " + CURRENCY_UNIT + ".\n"
-            "  \"founders\" : x.xxx,           (numeric) The founders' reward amount in " + CURRENCY_UNIT + ".\n"
-            "  \"fundingstreams\" : [          (array) An array of funding stream descriptions (present only when Canopy has activated).\n"
-            "    {\n"
-            "      \"recipient\" : \"...\",        (string) A description of the funding stream recipient.\n"
-            "      \"specification\" : \"url\",    (string) A URL for the specification of this funding stream.\n"
-            "      \"value\" : x.xxx             (numeric) The funding stream amount in " + CURRENCY_UNIT + ".\n"
-            "      \"valueZat\" : xxxx           (numeric) The funding stream amount in " + MINOR_CURRENCY_UNIT + ".\n"
-            "      \"address\" :                 (string) The transparent or Sapling address of the funding stream recipient.\n"
-            "    }, ...\n"
-            "  ]\n"
-            "}\n"
+            "  \"masternode\" : x.xxx,              (numeric) The masternode reward amount in " + CURRENCY_UNIT + ".\n"
             "\nExamples:\n"
             + HelpExampleCli("getblocksubsidy", "1000")
             + HelpExampleRpc("getblocksubsidy", "1000")
@@ -912,55 +920,12 @@ UniValue getblocksubsidy(const UniValue& params, bool fHelp)
     const Consensus::Params& consensus = Params().GetConsensus();
     CAmount nBlockSubsidy = GetBlockSubsidy(nHeight, consensus);
     CAmount nMinerReward = nBlockSubsidy;
-    CAmount nFoundersReward = 0;
-    bool canopyActive = consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_CANOPY);
+    CAmount nMasternodeReward = GetMasternodePayment(nHeight, nBlockSubsidy);
 
     UniValue result(UniValue::VOBJ);
-    if (canopyActive) {
-        KeyIO keyIO(Params());
-        UniValue fundingstreams(UniValue::VARR);
-        auto fsinfos = Consensus::GetActiveFundingStreams(nHeight, consensus);
-        for (int idx = 0; idx < fsinfos.size(); idx++) {
-            const auto& fsinfo = fsinfos[idx];
-            CAmount nStreamAmount = fsinfo.Value(nBlockSubsidy);
-            nMinerReward -= nStreamAmount;
 
-            UniValue fsobj(UniValue::VOBJ);
-            fsobj.pushKV("recipient", fsinfo.recipient);
-            fsobj.pushKV("specification", fsinfo.specification);
-            fsobj.pushKV("value", ValueFromAmount(nStreamAmount));
-            fsobj.pushKV("valueZat", nStreamAmount);
-
-            auto fs = consensus.vFundingStreams[idx];
-            auto address = fs.get().RecipientAddress(consensus, nHeight);
-
-            CScript* outpoint = boost::get<CScript>(&address);
-            std::string addressStr;
-
-            if (outpoint != nullptr) {
-                // For transparent funding stream addresses
-                UniValue pubkey(UniValue::VOBJ);
-                ScriptPubKeyToUniv(*outpoint, pubkey, true);
-                addressStr = find_value(pubkey, "addresses").get_array()[0].get_str();
-
-            } else {
-                libzcash::SaplingPaymentAddress* zaddr = boost::get<libzcash::SaplingPaymentAddress>(&address);
-                if (zaddr != nullptr) {
-                    // For shielded funding stream addresses
-                    addressStr = keyIO.EncodePaymentAddress(*zaddr);
-                }
-            }
-
-            fsobj.pushKV("address", addressStr);
-            fundingstreams.push_back(fsobj);
-        }
-        result.pushKV("fundingstreams", fundingstreams);
-    } else if (nHeight > 0 && nHeight <= consensus.GetLastFoundersRewardBlockHeight(nHeight)) {
-        nFoundersReward = nBlockSubsidy/5;
-        nMinerReward -= nFoundersReward;
-    }
     result.pushKV("miner", ValueFromAmount(nMinerReward));
-    result.pushKV("founders", ValueFromAmount(nFoundersReward));
+    result.pushKV("masternode", ValueFromAmount(nMasternodeReward));
     return result;
 }
 
