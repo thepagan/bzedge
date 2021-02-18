@@ -158,7 +158,7 @@ public:
             uint256S("00001be3b8c4d07bc927be3c2295e7840327b5975656683bfc34093540113dd9");
         consensus.vUpgrades[Consensus::UPGRADE_BZSHARES].nActivationHeight = 883000;
         consensus.vUpgrades[Consensus::UPGRADE_BZSHARES].nProtocolVersion = 175018;
-	consensus.vUpgrades[Consensus::UPGRADE_BZSHARES].hashActivationBlock =
+	    consensus.vUpgrades[Consensus::UPGRADE_BZSHARES].hashActivationBlock =
             uint256S("000012d151861912ceb0209c6cdd9374114d0fe0a136a9f0a62d4ce3401dd59b");
         consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nProtocolVersion = 175019;
         consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nActivationHeight = Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
@@ -194,7 +194,7 @@ public:
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("00000000000000000000000000000000000000000000000000008d9a03d79a68");
 
-	consensus.fPowNoRetargeting=false;
+	    consensus.fPowNoRetargeting=false;
         consensus.nLWMAHeight=199900;
         consensus.nPowLwmaTargetSpacing = 1 * 60;
         consensus.nZawyLwmaAveragingWindow = 75;
@@ -238,12 +238,8 @@ public:
             empty_solution,
             0x1f07ffff, 4, 0);
         consensus.hashGenesisBlock = genesis.GetHash();
-        printf("GENESIS MAIN: %s\n", consensus.hashGenesisBlock.ToString().c_str());
-        assert(consensus.hashGenesisBlock == uint256S("0xf499ee3d498b4298ac6a64205b8addb7c43197e2a660229be65db8a4534d75c1")); //incremented by 1 making 2
+        assert(consensus.hashGenesisBlock == uint256S("0xf499ee3d498b4298ac6a64205b8addb7c43197e2a660229be65db8a4534d75c1"));
         assert(genesis.hashMerkleRoot == uint256S("0xf40283d893eb46b35379a404cf06bd58c22ce05b32a4a641adec56e0792789ad"));
-
-        printf("PEPE: genesis.bits = %08x \n", genesis.nBits);
-        printf("PEPE: genesis.nonce = %s \n", genesis.nNonce.ToString().c_str());
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -273,10 +269,11 @@ public:
 		( 444600, uint256S("0x0000181b00e928fac7c5841f04ab99038cedbd3776ff658df6eb6c841ccc2ea3"))
 		( 586000, uint256S("0x0000094cf923b3cccc179769b948b1cd091382a7ab19db2369ef8e66d0e49cfd"))
 		( 868010, uint256S("0x00006ed38c012a59d3f17be569eb9da5c4147a3a9297ffd189b46c02d9d0ef4e"))
-            	( 1200000, uint256S("0x0000fddbdaa51d886f34bb7db2b49022a5f5f9e23307d3342373bac90070c363")),
+        ( 1200000, uint256S("0x0000fddbdaa51d886f34bb7db2b49022a5f5f9e23307d3342373bac90070c363"))
+        ( 1472000, uint256S("0x0002bd5b9212e365978b45e2d2a039e0a815e3ec7478424c160cfe02e8e8f3ba")),
 
-		1596365964, // * UNIX timestamp of last checkpoint block
-		2519866,    // * total number of transactions between genesis and last checkpoint
+		1613635148, // * UNIX timestamp of last checkpoint block
+		2880102,    // * total number of transactions between genesis and last checkpoint
 			    //   (the tx=... number in the SetBestChain debug.log lines)
 		3000        // * estimated number of transactions per day after checkpoint
 							

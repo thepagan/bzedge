@@ -45,7 +45,7 @@
  * Additional macros, to ease the pain of (fork | rebase) rebranding
  */
 #define RC_COIN_NAME "BZEdge"
-#define RC_COIN_NICKNAME "bzedgev4"
+#define RC_COIN_NICKNAME "bzedge"
 #define RC_COIN_CLIENT_NAME "BZShares"
 #define RC_COIN_DAEMON_EXECUTABLE "bzedged"
 #define RC_COIN_CLI_EXECUTABLE "bzedge-cli"
