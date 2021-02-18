@@ -192,7 +192,7 @@ public:
         consensus.nFutureTimestampSoftForkHeight = 2000000;
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("00000000000000000000000000000000000000000000000000008d9a03d79a68");
+        consensus.nMinimumChainWork = uint256S("00000000000000000000000000000000000000000000000000008d9b632e9eb5");
 
 	    consensus.fPowNoRetargeting=false;
         consensus.nLWMAHeight=199900;
