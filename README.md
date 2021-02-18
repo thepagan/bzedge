@@ -1,5 +1,5 @@
 
-<img width="120" height="80" src="doc/imgs/logo.png">
+<img width="612" height="613" src="doc/imgs/bzedge-logo.png">
 
 ### Checkout latest releases here: https://github.com/bze-alphateam/bzedge/releases
 
