@@ -5,9 +5,9 @@ $(package)_file_name=$(package)-$($(package)_version).tar.gz
 $(package)_sha256_hash=9d9285db37ae942ed0780c016da87060497877af45094ff9e1a1ca736e3875a2
 $(package)_patches=windows-unused-variables.diff
 
-ifneq ($(host_os),darwin)
-$(package)_dependencies=libcxx
-endif
+#ifneq ($(host_os),darwin)
+#$(package)_dependencies=libcxx
+#endif
 
 define $(package)_set_vars
   $(package)_config_opts=--without-docs --disable-shared --disable-curve --disable-curve-keygen --disable-perf
@@ -17,7 +17,7 @@ define $(package)_set_vars
   $(package)_config_opts_linux=--with-pic
   $(package)_config_opts_freebsd=--with-pic
   $(package)_cxxflags+=-std=c++17
-  $(package)_ldflags+=-static-libstdc++ -lc++abi
+  #$(package)_ldflags+=-static-libstdc++ -lc++abi
 endef
 
 define $(package)_preprocess_cmds

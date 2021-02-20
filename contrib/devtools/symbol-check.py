@@ -57,7 +57,8 @@ import os
 #   libc6:     GLIBC_2_23
 
 # We statically link libc++ and libc++abi in our builds. Set this to allow dynamic linking to libstdc++.
-ALLOW_DYNAMIC_LIBSTDCXX = False
+#ALLOW_DYNAMIC_LIBSTDCXX = False
+ALLOW_DYNAMIC_LIBSTDCXX = True
 
 MAX_VERSIONS = {
     'GCC':   (4,5,0),

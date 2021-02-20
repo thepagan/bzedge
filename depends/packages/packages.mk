@@ -1,6 +1,7 @@
 zcash_packages := libsodium utfcpp
 packages := boost libevent zeromq $(zcash_packages) bzedge_vendored_crates googletest
-native_packages := native_clang native_ccache native_rust
+#native_packages := native_clang native_ccache native_rust
+native_packages := native_ccache native_rust
 
 wallet_packages=bdb
 
@@ -9,6 +10,6 @@ darwin_native_packages=native_cctools
 endif
 
 # We use a complete SDK for Darwin, which includes libc++.
-ifneq ($(host_os),darwin)
-packages += libcxx
-endif
+#ifneq ($(host_os),darwin)
+#packages += libcxx
+#endif
