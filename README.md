@@ -31,7 +31,7 @@ Install
 git clone https://github.com/bze-alphateam/bzedge
 # Build: At the moment building works only without tests. Make sure to disable them.
 cd bzedge/
-./zcutil/build.sh --disable-tests -j$(nproc)
+CONFIGURE_FLAGS="--disable-tests --disable-bench" ./zcutil/build.sh -j$(nproc)
 # fetch key
 ./zcutil/fetch-params.sh
 # Run
