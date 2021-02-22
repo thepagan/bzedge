@@ -2116,10 +2116,13 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const Consensus:
         return error("%s: Deserialize or I/O error - %s at %s", __func__, e.what(), pos.ToString());
     }
 
-    // Check the header
-    if (!(CheckEquihashSolution(&block, consensusParams) &&
-          CheckProofOfWork(block.GetHash(), block.nBits, consensusParams)))
-        return error("ReadBlockFromDisk: Errors in block header at %s", pos.ToString());
+    if (block.GetHash() != consensusParams.hashGenesisBlock) // skip Equihash solution check for genesis, empty block 0 solution is inherited "feature" from BitcoinZ
+    {
+        // Check the header
+        if (!(CheckEquihashSolution(&block, consensusParams) &&
+            CheckProofOfWork(block.GetHash(), block.nBits, consensusParams)))
+            return error("ReadBlockFromDisk: Errors in block header at %s", pos.ToString());
+    }
 
     return true;
 }

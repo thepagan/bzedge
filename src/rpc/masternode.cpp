@@ -1042,7 +1042,7 @@ UniValue rewardactivemns(const UniValue& params, bool fHelp)
             "Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001\n"
             "Be aware that the list of active MNs is stored locally and might not contain all the MNs in the network.\n"
             "\nArguments:\n"
-            "1. \"amount\"                  (numeric, required) A json object with addresses and amounts\n"
+            "1. \"amount\"                  (numeric, required) Amount is a real and is rounded to the nearest 0.00000001\n"
             "2. subtractfeefromamount       (boolean, optional, default=false) The fee will be deducted from the amount being sent.\n"
             "                               Masternodes will receive less Zcash than you enter in the amount field.\n"
             "3. \"comment\"                 (string, optional) A comment used to store what the transaction is for. \n"

@@ -22,7 +22,7 @@ static const int ACTIVATION_TO_DEPRECATION_BLOCKS = (RELEASE_TO_DEPRECATION_WEEK
 static const int DEPRECATION_HEIGHT = APPROX_RELEASE_HEIGHT + ACTIVATION_TO_DEPRECATION_BLOCKS;
 
 // Number of blocks before deprecation to warn users 
-static const int DEPRECATION_WARN_LIMIT = 21 * 24 * EXPECTED_BLOCKS_PER_HOUR;
+static const int DEPRECATION_WARN_LIMIT = 45 * 24 * EXPECTED_BLOCKS_PER_HOUR;
 
 /**
  * Checks whether the node is deprecated based on the current block height, and

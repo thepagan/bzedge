@@ -45,18 +45,18 @@
  * Additional macros, to ease the pain of (fork | rebase) rebranding
  */
 #define RC_COIN_NAME "BZEdge"
-#define RC_COIN_NICKNAME "bzedgev4"
+#define RC_COIN_NICKNAME "bzedge"
 #define RC_COIN_CLIENT_NAME "BZShares"
 #define RC_COIN_DAEMON_EXECUTABLE "bzedged"
 #define RC_COIN_CLI_EXECUTABLE "bzedge-cli"
 #define RC_COIN_TX_EXECUTABLE "bzedge-tx" 
 #define RC_COIN_WALLET_FILENAME "wallet.dat"
-#define RC_COIN_RPC_PORT_MAINNET 8232
-#define RC_COIN_RPC_PORT_TESTNET 18232
-#define RC_COIN_RPC_PORT_REGTEST 18232
+#define RC_COIN_RPC_PORT_MAINNET 1980
+#define RC_COIN_RPC_PORT_TESTNET 11980
+#define RC_COIN_RPC_PORT_REGTEST 11980
 #define RC_COIN_CURRENCY_UNIT "BZE"
 #define RC_COIN_MINOR_CURRENCY_UNIT "bzetoshis"
-#define RC_APPROX_RELEASE_HEIGHT 957287
+#define RC_APPROX_RELEASE_HEIGHT 1476000
 #define RC_MAX_OUTBOUND_CONNECTIONS 32
 
 
