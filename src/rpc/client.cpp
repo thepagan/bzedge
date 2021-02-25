@@ -105,6 +105,8 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "setban", 2 },
     { "setban", 3 },
     { "getspentinfo", 0},
+    { "getalldata", 0},
+    { "getalldata", 1},
     { "getaddresstxids", 0},
     { "getaddressbalance", 0},
     { "getaddressdeltas", 0},

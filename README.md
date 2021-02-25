@@ -31,7 +31,7 @@ Install
 git clone https://github.com/bze-alphateam/bzedge
 # Build: At the moment building works only without tests. Make sure to disable them.
 cd bzedge/
-./zcutil/build.sh --disable-tests -j$(nproc)
+CONFIGURE_FLAGS="--disable-tests --disable-bench" ./zcutil/build.sh -j$(nproc)
 # fetch key
 ./zcutil/fetch-params.sh
 # Run
@@ -60,12 +60,9 @@ cd src/
 daemon=1
 rpcuser=INSERT_YOUR_USER_HERE
 rpcpassword=INSERT_A_SECURE_PASSWORD_HERE
-addnode=51.15.99.37
-addnode=51.15.49.128
-addnode=104.248.95.146
-addnode=93.104.215.133
-addnode=5.189.139.227
-addnode=51.15.96.180
+addnode=144.91.119.59
+addnode=144.91.121.65
+addnode=167.86.99.150
 ```
 You can add more nodes from this list https://blocks.getbze.com/network  
 
