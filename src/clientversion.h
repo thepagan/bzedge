@@ -18,7 +18,7 @@
 #define CLIENT_VERSION_MAJOR 4
 #define CLIENT_VERSION_MINOR 1
 #define CLIENT_VERSION_REVISION 1
-#define CLIENT_VERSION_BUILD 50
+#define CLIENT_VERSION_BUILD 51
 
 //! Set to true for release, false for prerelease or test build
 #define CLIENT_VERSION_IS_RELEASE true
@@ -27,7 +27,7 @@
  * Copyright year (2009-this)
  * Todo: update this when changing our copyright comments in the source
  */
-#define COPYRIGHT_YEAR 2020
+#define COPYRIGHT_YEAR 2021
 
 #endif //HAVE_CONFIG_H
 
@@ -56,7 +56,7 @@
 #define RC_COIN_RPC_PORT_REGTEST 11980
 #define RC_COIN_CURRENCY_UNIT "BZE"
 #define RC_COIN_MINOR_CURRENCY_UNIT "bzetoshis"
-#define RC_APPROX_RELEASE_HEIGHT 1476000
+#define RC_APPROX_RELEASE_HEIGHT 1482000
 #define RC_MAX_OUTBOUND_CONNECTIONS 32
 
 
