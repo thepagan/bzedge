@@ -284,7 +284,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
         trans.push_backV(arrTmp);
     }
 
-    returnObj.push_back(Pair("listtransactions", trans));
+    returnObj.pushKV("listtransactions", trans);
     return returnObj;
 }
 
@@ -414,22 +414,22 @@ UniValue mnsync(const UniValue& params, bool fHelp)
     if (strMode == "status") {
         UniValue obj(UniValue::VOBJ);
 
-        obj.push_back(Pair("IsBlockchainSynced", masternodeSync.IsBlockchainSynced()));
-        obj.push_back(Pair("lastMasternodeList", masternodeSync.lastMasternodeList));
-        obj.push_back(Pair("lastMasternodeWinner", masternodeSync.lastMasternodeWinner));
-        obj.push_back(Pair("lastBudgetItem", masternodeSync.lastBudgetItem));
-        obj.push_back(Pair("lastFailure", masternodeSync.lastFailure));
-        obj.push_back(Pair("nCountFailures", masternodeSync.nCountFailures));
-        obj.push_back(Pair("sumMasternodeList", masternodeSync.sumMasternodeList));
-        obj.push_back(Pair("sumMasternodeWinner", masternodeSync.sumMasternodeWinner));
-        obj.push_back(Pair("sumBudgetItemProp", masternodeSync.sumBudgetItemProp));
-        obj.push_back(Pair("sumBudgetItemFin", masternodeSync.sumBudgetItemFin));
-        obj.push_back(Pair("countMasternodeList", masternodeSync.countMasternodeList));
-        obj.push_back(Pair("countMasternodeWinner", masternodeSync.countMasternodeWinner));
-        obj.push_back(Pair("countBudgetItemProp", masternodeSync.countBudgetItemProp));
-        obj.push_back(Pair("countBudgetItemFin", masternodeSync.countBudgetItemFin));
-        obj.push_back(Pair("RequestedMasternodeAssets", masternodeSync.RequestedMasternodeAssets));
-        obj.push_back(Pair("RequestedMasternodeAttempt", masternodeSync.RequestedMasternodeAttempt));
+        obj.pushKV("IsBlockchainSynced", masternodeSync.IsBlockchainSynced());
+        obj.pushKV("lastMasternodeList", masternodeSync.lastMasternodeList);
+        obj.pushKV("lastMasternodeWinner", masternodeSync.lastMasternodeWinner);
+        obj.pushKV("lastBudgetItem", masternodeSync.lastBudgetItem);
+        obj.pushKV("lastFailure", masternodeSync.lastFailure);
+        obj.pushKV("nCountFailures", masternodeSync.nCountFailures);
+        obj.pushKV("sumMasternodeList", masternodeSync.sumMasternodeList);
+        obj.pushKV("sumMasternodeWinner", masternodeSync.sumMasternodeWinner);
+        obj.pushKV("sumBudgetItemProp", masternodeSync.sumBudgetItemProp);
+        obj.pushKV("sumBudgetItemFin", masternodeSync.sumBudgetItemFin);
+        obj.pushKV("countMasternodeList", masternodeSync.countMasternodeList);
+        obj.pushKV("countMasternodeWinner", masternodeSync.countMasternodeWinner);
+        obj.pushKV("countBudgetItemProp", masternodeSync.countBudgetItemProp);
+        obj.pushKV("countBudgetItemFin", masternodeSync.countBudgetItemFin);
+        obj.pushKV("RequestedMasternodeAssets", masternodeSync.RequestedMasternodeAssets);
+        obj.pushKV("RequestedMasternodeAttempt", masternodeSync.RequestedMasternodeAttempt);
 
         return obj;
     }
@@ -492,14 +492,14 @@ UniValue spork(const UniValue& params, bool fHelp)
         UniValue ret(UniValue::VOBJ);
         for (int nSporkID = SPORK_START; nSporkID <= SPORK_END; nSporkID++) {
             if (sporkManager.GetSporkNameByID(nSporkID) != "Unknown")
-                ret.push_back(Pair(sporkManager.GetSporkNameByID(nSporkID), GetSporkValue(nSporkID)));
+                ret.pushKV(sporkManager.GetSporkNameByID(nSporkID), GetSporkValue(nSporkID));
         }
         return ret;
     } else if (params.size() == 1 && params[0].get_str() == "active") {
         UniValue ret(UniValue::VOBJ);
         for (int nSporkID = SPORK_START; nSporkID <= SPORK_END; nSporkID++) {
             if (sporkManager.GetSporkNameByID(nSporkID) != "Unknown")
-                ret.push_back(Pair(sporkManager.GetSporkNameByID(nSporkID), IsSporkActive(nSporkID)));
+                ret.pushKV(sporkManager.GetSporkNameByID(nSporkID), IsSporkActive(nSporkID));
         }
         return ret;
     } else if (params.size() == 2) {
@@ -1509,12 +1509,12 @@ static UniValue RPCLockedMemoryInfo()
 {
     LockedPool::Stats stats = LockedPoolManager::Instance().stats();
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("used", uint64_t(stats.used)));
-    obj.push_back(Pair("free", uint64_t(stats.free)));
-    obj.push_back(Pair("total", uint64_t(stats.total)));
-    obj.push_back(Pair("locked", uint64_t(stats.locked)));
-    obj.push_back(Pair("chunks_used", uint64_t(stats.chunks_used)));
-    obj.push_back(Pair("chunks_free", uint64_t(stats.chunks_free)));
+    obj.pushKV("used", uint64_t(stats.used));
+    obj.pushKV("free", uint64_t(stats.free));
+    obj.pushKV("total", uint64_t(stats.total));
+    obj.pushKV("locked", uint64_t(stats.locked));
+    obj.pushKV("chunks_used", uint64_t(stats.chunks_used));
+    obj.pushKV("chunks_free", uint64_t(stats.chunks_free));
     return obj;
 }
 
@@ -1543,7 +1543,7 @@ UniValue getmemoryinfo(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getmemoryinfo", "")
         );
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("locked", RPCLockedMemoryInfo()));
+    obj.pushKV("locked", RPCLockedMemoryInfo());
     return obj;
 }
 

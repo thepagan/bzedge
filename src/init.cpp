@@ -857,7 +857,6 @@ void InitLogging()
 
     LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     LogPrintf("BZEdge version %s (%s)\n", FormatFullVersion(), CLIENT_DATE);
-    LogPrintf("MIODRAG initialFilter for debug = %s\n", initialFilter);
 }
 
 /** Initialize bitcoin.
