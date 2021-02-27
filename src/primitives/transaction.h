@@ -7,7 +7,6 @@
 #define BITCOIN_PRIMITIVES_TRANSACTION_H
 
 #include "amount.h"
-#include "random.h"
 #include "script/script.h"
 #include "serialize.h"
 #include "streams.h"
@@ -15,12 +14,11 @@
 #include "consensus/consensus.h"
 
 #include <array>
+#include <variant>
 
-#include <boost/variant.hpp>
 
 #include "zcash/NoteEncryption.hpp"
 #include "zcash/Zcash.h"
-#include "zcash/JoinSplit.hpp"
 #include "zcash/Proof.hpp"
 
 #include <rust/ed25519/types.h>
@@ -140,7 +138,7 @@ public:
 };
 
 template <typename Stream>
-class SproutProofSerializer : public boost::static_visitor<>
+class SproutProofSerializer
 {
     Stream& s;
     bool useGroth;
@@ -169,7 +167,7 @@ template<typename Stream, typename T>
 inline void SerReadWriteSproutProof(Stream& s, const T& proof, bool useGroth, CSerActionSerialize ser_action)
 {
     auto ps = SproutProofSerializer<Stream>(s, useGroth);
-    boost::apply_visitor(ps, proof);
+    std::visit(ps, proof);
 }
 
 template<typename Stream, typename T>
@@ -235,34 +233,6 @@ public:
     libzcash::SproutProof proof;
 
     JSDescription(): vpub_old(0), vpub_new(0) { }
-
-    JSDescription(
-            const Ed25519VerificationKey& joinSplitPubKey,
-            const uint256& rt,
-            const std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
-            const std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
-            CAmount vpub_old,
-            CAmount vpub_new,
-            bool computeProof = true, // Set to false in some tests
-            uint256 *esk = nullptr // payment disclosure
-    );
-
-    static JSDescription Randomized(
-            const Ed25519VerificationKey& joinSplitPubKey,
-            const uint256& rt,
-            std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
-            std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
-            std::array<size_t, ZC_NUM_JS_INPUTS>& inputMap,
-            std::array<size_t, ZC_NUM_JS_OUTPUTS>& outputMap,
-            CAmount vpub_old,
-            CAmount vpub_new,
-            bool computeProof = true, // Set to false in some tests
-            uint256 *esk = nullptr, // payment disclosure
-            std::function<int(int)> gen = GetRandInt
-    );
-
-    // Returns the calculated h_sig
-    uint256 h_sig(const Ed25519VerificationKey& joinSplitPubKey) const;
 
     ADD_SERIALIZE_METHODS;
 
@@ -362,7 +332,7 @@ class SaplingOutPoint : public BaseOutPoint
 {
 public:
     SaplingOutPoint() : BaseOutPoint() {};
-    SaplingOutPoint(uint256 hashIn, uint32_t nIn) : BaseOutPoint(hashIn, nIn) {}; 
+    SaplingOutPoint(uint256 hashIn, uint32_t nIn) : BaseOutPoint(hashIn, nIn) {};
     std::string ToString() const;
 };
 
@@ -375,6 +345,8 @@ class CTxIn
 public:
     COutPoint prevout;
     CScript scriptSig;
+    // The only use of nSequence (via IsFinal) is in TransactionSignatureChecker::CheckLockTime
+    // It disables the nLockTime feature when set to maxint.
     uint32_t nSequence;
     CScript prevPubKey;
 

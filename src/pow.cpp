@@ -12,6 +12,7 @@
 #include "primitives/block.h"
 #include "streams.h"
 #include "uint256.h"
+#include "util.h"
 
 #include <librustzcash.h>
 
@@ -181,8 +182,8 @@ unsigned int ZC_GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockH
     {
         // Comparing to pindexLast->nHeight with >= because this function
         // returns the work required for the block after pindexLast.
-        if (params.nPowAllowMinDifficultyBlocksAfterHeight != boost::none &&
-            pindexLast->nHeight >= params.nPowAllowMinDifficultyBlocksAfterHeight.get())
+        if (params.nPowAllowMinDifficultyBlocksAfterHeight != std::nullopt &&
+            pindexLast->nHeight >= params.nPowAllowMinDifficultyBlocksAfterHeight.value())
         {
             // Special difficulty rule for testnet:
             // If the new block's timestamp is more than 6 * block interval minutes

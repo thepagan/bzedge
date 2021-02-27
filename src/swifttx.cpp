@@ -75,7 +75,7 @@ void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& v
         bool fAccepted = false;
         {
             LOCK(cs_main);
-            fAccepted = AcceptToMemoryPool(mempool, state, tx, true, &fMissingInputs);
+            fAccepted = AcceptToMemoryPool(Params(), mempool, state, tx, true, &fMissingInputs);
         }
         if (fAccepted) {
             RelayInv(inv);
