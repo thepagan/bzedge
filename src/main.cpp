@@ -7466,10 +7466,12 @@ bool SendMessages(const Consensus::Params& params, CNode* pto, bool fSendTrickle
         // Message: getdata (blocks)
         //
         vector<CInv> vGetData;
-        if (!pto->fDisconnect && !pto->fClient && (fFetch || !IsInitialBlockDownload(params)) && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
+        // In case when -graylist option is used inbound connected peers are also asked for blocks. Multiple inbound connected peers can share the same remote network connection, so let's request fewer blocks from each of them ...
+        int customMaxBlocksInTransitPerPeer = pto->fInbound ? (MAX_BLOCKS_IN_TRANSIT_PER_PEER / 4) : MAX_BLOCKS_IN_TRANSIT_PER_PEER;
+        if (!pto->fDisconnect && !pto->fClient && (fFetch || !IsInitialBlockDownload(params)) && state.nBlocksInFlight < customMaxBlocksInTransitPerPeer) {
             vector<CBlockIndex*> vToDownload;
             NodeId staller = -1;
-            FindNextBlocksToDownload(pto->GetId(), MAX_BLOCKS_IN_TRANSIT_PER_PEER - state.nBlocksInFlight, vToDownload, staller);
+            FindNextBlocksToDownload(pto->GetId(), customMaxBlocksInTransitPerPeer - state.nBlocksInFlight, vToDownload, staller);
             for (CBlockIndex *pindex : vToDownload) {
                 vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
                 MarkBlockAsInFlight(pto->GetId(), pindex->GetBlockHash(), params, pindex);
