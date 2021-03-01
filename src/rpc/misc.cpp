@@ -100,7 +100,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
 
     int nMinDepth = 1;
     CAmount nBalance = getBalanceTaddr("", nMinDepth, true);
-    CAmount nPrivateBalance = getBalanceZaddr("", nMinDepth, true);
+    CAmount nPrivateBalance = getBalanceZaddr("", nMinDepth, INT_MAX, true);
     CAmount nLockedCoin = pwalletMain->GetLockedCoins();
 
     CAmount nTotalBalance = nBalance + nPrivateBalance + nLockedCoin;
@@ -172,7 +172,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
               if (pwalletMain->HaveSproutSpendingKey(addr)) {
                   UniValue address(UniValue::VOBJ);
                   const string& strName = keyIO.EncodePaymentAddress(addr);
-                  nBalance = getBalanceZaddr(strName, nMinDepth, false);
+                  nBalance = getBalanceZaddr(strName, nMinDepth, INT_MAX, false);
                   address.pushKV("amount", ValueFromAmount(nBalance));
                   address.pushKV("ismine", true);
                   addrlist.pushKV(strName, address);
@@ -181,7 +181,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
               {
                   UniValue address(UniValue::VOBJ);
                   const string& strName = keyIO.EncodePaymentAddress(addr);
-                  nBalance = getBalanceZaddr(strName, nMinDepth, false);
+                  nBalance = getBalanceZaddr(strName, nMinDepth, INT_MAX, false);
                   address.pushKV("amount", ValueFromAmount(nBalance));
                   address.pushKV("ismine", false);
                   addrlist.pushKV(strName, address);
@@ -199,7 +199,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
                   if(pwalletMain->HaveSaplingSpendingKey(fvk)) {
                       UniValue address(UniValue::VOBJ);
                       const string& strName = keyIO.EncodePaymentAddress(addr);
-                      nBalance = getBalanceZaddr(strName, nMinDepth, false);
+                      nBalance = getBalanceZaddr(strName, nMinDepth, INT_MAX, false);
                       address.pushKV("amount", ValueFromAmount(nBalance));
                       address.pushKV("ismine", true);
                       addrlist.pushKV(strName, address);
@@ -208,7 +208,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
                   {
                       UniValue address(UniValue::VOBJ);
                       const string& strName = keyIO.EncodePaymentAddress(addr);
-                      nBalance = getBalanceZaddr(strName, nMinDepth, false);
+                      nBalance = getBalanceZaddr(strName, nMinDepth, INT_MAX, false);
                       address.pushKV("amount", ValueFromAmount(nBalance));
                       address.pushKV("ismine", false);
                       addrlist.pushKV(strName, address);
