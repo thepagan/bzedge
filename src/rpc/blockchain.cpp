@@ -925,7 +925,7 @@ UniValue exportchain(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() > 1)
         throw runtime_error(
-            "exportchain filename\n"
+            "exportchain \"filename\"\n"
             "\nExports blockchain database (makes bootstrap).\n"
             "\nArguments:\n"
             "1. filename   (string, optional, default = bootstrap.dat).\n"
@@ -981,6 +981,9 @@ UniValue exportchain(const UniValue& params, bool fHelp)
                 pindex = chainActive.Next(pindex);
             }
         }
+
+        FileCommit(fileout.Get());
+        fileout.fclose();
 
         ret.pushKV("result", true);
         ret.pushKV("description", strprintf("%s created", path.generic_string()));
@@ -1509,7 +1512,7 @@ static const CRPCCommand commands[] =
     { "blockchain",         "gettxout",               &gettxout,               true  },
     { "blockchain",         "gettxoutsetinfo",        &gettxoutsetinfo,        true  },
     { "blockchain",         "verifychain",            &verifychain,            true  },
-    { "blockchain",         "exportchain",            &verifychain,            true  },
+    { "blockchain",         "exportchain",            &exportchain,            true  },
 
     // insightexplorer
     { "blockchain",         "getblockdeltas",         &getblockdeltas,         false },
