@@ -71,7 +71,7 @@ static const int NETWORK_UPGRADE_PEER_PREFERENCE_BLOCK_PERIOD = 1728;
 
 static const bool DEFAULT_FORCEDNSSEED = false;
 static const size_t DEFAULT_MAXRECEIVEBUFFER = 5 * 1000;
-static const size_t DEFAULT_MAXSENDBUFFER    = 1 * 1000;
+static const size_t DEFAULT_MAXSENDBUFFER    = 2 * 1000; // old defaut is 1 * 1000; can be changed by using -maxsendbuffer 
 
 // NOTE: When adjusting this, update rpcnet:setban's help ("24h")
 static const unsigned int DEFAULT_MISBEHAVING_BANTIME = 60 * 60 * 24;  // Default 24-hour ban
