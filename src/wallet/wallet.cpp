@@ -35,7 +35,6 @@
 #include "wallet/asyncrpcoperation_saplingconsolidation.h"
 #include "warnings.h"
 
-#include <random>
 #include <algorithm>
 #include <assert.h>
 #include <variant>
@@ -741,7 +740,7 @@ void CWallet::RunSaplingConsolidation(int blockHeight) {
 
 void CWallet::CommitConsolidationTx(const CTransaction& tx) {
   CWalletTx wtx(this, tx);
-  CommitTransaction(wtx, boost::none);
+  CommitTransaction(wtx, std::nullopt);
 }
 
 void CWallet::SetBestChain(const CBlockLocator& loc)
@@ -2093,14 +2092,17 @@ void CWallet::UpdateSproutNullifierNoteMapWithTx(CWalletTx& wtx) {
         if (nd.witnesses.empty()) {
             // If there are no witnesses, erase the nullifier and associated mapping.
             if (nd.nullifier) {
-                mapSproutNullifiersToNotes.erase(nd.nullifier.get());
+                mapSproutNullifiersToNotes.erase(nd.nullifier.value());
             }
-            nd.nullifier = boost::none;
+            nd.nullifier = std::nullopt;
         }
         else {
             if (GetNoteDecryptor(nd.address, dec)) {
                 auto i = item.first.js;
-                auto hSig = wtx.vJoinSplit[i].h_sig(wtx.joinSplitPubKey);
+                auto hSig = ZCJoinSplit::h_sig(
+                            wtx.vJoinSplit[i].randomSeed,
+                            wtx.vJoinSplit[i].nullifiers,
+                            wtx.joinSplitPubKey);
                 auto optNullifier = GetSproutNoteNullifier(
                     wtx.vJoinSplit[i],
                     item.second.address,
@@ -2113,7 +2115,7 @@ void CWallet::UpdateSproutNullifierNoteMapWithTx(CWalletTx& wtx) {
                     assert(false);
                 }
 
-                uint256 nullifier = optNullifier.get();
+                uint256 nullifier = optNullifier.value();
                 mapSproutNullifiersToNotes[nullifier] = item.first;
                 mapArcJSOutPoints[nullifier] = item.first;
                 item.second.nullifier = nullifier;
@@ -6337,15 +6339,13 @@ set<CTxDestination> CWallet::GetAddresses(bool include_watch_only)
             t_addresses.insert(address);
     }
 
-	for (std::pair<uint256, CWalletTx> walletEntry : mapWallet)
+	for (const std::pair<uint256, CWalletTx>& walletEntry : mapWallet)
 	{
-		CWalletTx *pcoin = &walletEntry.second;
-
-		if (pcoin->vin.size() > 0)
+        if (walletEntry.second.vin.size() > 0)
 		{
 			bool any_mine = false;
 			// standard t-addresses from wallet tx inputs
-			for (CTxIn txin : pcoin->vin)
+			for (CTxIn txin : walletEntry.second.vin)
 			{
 				CTxDestination address;
 				if(!IsMine(txin)) /* If this input isn't mine, ignore it */
@@ -6366,7 +6366,7 @@ set<CTxDestination> CWallet::GetAddresses(bool include_watch_only)
 			// change addresses from wallet tx outputs
 			if (any_mine)
 			{
-			   for (CTxOut txout : pcoin->vout)
+			   for (CTxOut txout : walletEntry.second.vout)
 			   {
 					if (IsChange(txout))
 					{
@@ -6387,12 +6387,12 @@ set<CTxDestination> CWallet::GetAddresses(bool include_watch_only)
 		}
 
 		// remaining addresses
-		for (unsigned int i = 0; i < pcoin->vout.size(); i++)
+		for (unsigned int i = 0; i < walletEntry.second.vout.size(); i++)
 		{
-			if (IsMine(pcoin->vout[i]))
+			if (IsMine(walletEntry.second.vout[i]))
 			{
 				CTxDestination address;
-				if(!ExtractDestination(pcoin->vout[i].scriptPubKey, address))
+				if(!ExtractDestination(walletEntry.second.vout[i].scriptPubKey, address))
 					continue;
 				
 				bool is_watch_only = (pwalletMain ? ::IsMine(*pwalletMain, address) : ISMINE_NO) & ISMINE_WATCH_ONLY;

@@ -4729,7 +4729,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
     if (!ActivateBestChain(state, chainparams, pblock))
         return error("%s: ActivateBestChain failed", __func__);
 
-    if (!fLiteMode && !IsInitialBlockDownload(chainparams)) {
+    if (!fLiteMode && !IsInitialBlockDownload(chainparams.GetConsensus())) {
         if (masternodeSync.RequestedMasternodeAssets > MASTERNODE_SYNC_LIST) {
             obfuScationPool.NewBlock();
             masternodePayments.ProcessBlock(GetHeight() + 10);

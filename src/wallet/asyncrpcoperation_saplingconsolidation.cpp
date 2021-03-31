@@ -1,5 +1,4 @@
 #include "assert.h"
-#include "boost/variant/static_visitor.hpp"
 #include "asyncrpcoperation_saplingconsolidation.h"
 #include "init.h"
 #include "key_io.h"
@@ -73,7 +72,7 @@ bool AsyncRPCOperation_saplingconsolidation::main_impl() {
     LogPrint("zrpcunsafe", "%s: Beginning AsyncRPCOperation_saplingconsolidation.\n", getId());
     const Consensus::Params& consensusParams = Params().GetConsensus();
     auto nextActivationHeight = NextActivationHeight(targetHeight_, consensusParams);
-    if (nextActivationHeight && targetHeight_ + CONSOLIDATION_EXPIRY_DELTA >= nextActivationHeight.get()) {
+    if (nextActivationHeight && targetHeight_ + CONSOLIDATION_EXPIRY_DELTA >= nextActivationHeight.value()) {
         LogPrint("zrpcunsafe", "%s: Consolidation txs would be created before a NU activation but may expire after. Skipping this round.\n", getId());
         setConsolidationResult(0, 0, std::vector<std::string>());
         return true;
@@ -93,8 +92,8 @@ bool AsyncRPCOperation_saplingconsolidation::main_impl() {
             const vector<string>& v = mapMultiArgs["-consolidatesaplingaddress"];
             for(int i = 0; i < v.size(); i++) {
                 auto zAddress = keyIO.DecodePaymentAddress(v[i]);
-                if (boost::get<libzcash::SaplingPaymentAddress>(&zAddress) != nullptr) {
-                    libzcash::SaplingPaymentAddress saplingAddress = boost::get<libzcash::SaplingPaymentAddress>(zAddress);
+                if (std::get_if<libzcash::SaplingPaymentAddress>(&zAddress) != nullptr) {
+                    libzcash::SaplingPaymentAddress saplingAddress = std::get<libzcash::SaplingPaymentAddress>(zAddress);
                     addresses.insert(saplingAddress );
                 }
             }
@@ -116,9 +115,8 @@ bool AsyncRPCOperation_saplingconsolidation::main_impl() {
             CAmount amountToSend = 0;
             int maxQuantity = rand() % 35 + 10;
             for (const SaplingNoteEntry& saplingEntry : saplingEntries) {
-
                 libzcash::SaplingIncomingViewingKey ivk;
-                pwalletMain->GetSaplingIncomingViewingKey(boost::get<libzcash::SaplingPaymentAddress>(saplingEntry.address), ivk);
+                pwalletMain->GetSaplingIncomingViewingKey(saplingEntry.address, ivk);
 
                 //Select Notes from that same address we will be sending to.
                 if (ivk == extsk.expsk.full_viewing_key().in_viewing_key()) {
@@ -152,7 +150,7 @@ bool AsyncRPCOperation_saplingconsolidation::main_impl() {
 
             // Fetch Sapling anchor and witnesses
             uint256 anchor;
-            std::vector<boost::optional<SaplingWitness>> witnesses;
+            std::vector<std::optional<SaplingWitness>> witnesses;
             {
                 LOCK2(cs_main, pwalletMain->cs_wallet);
                 pwalletMain->GetSaplingNoteWitnesses(ops, witnesses, anchor);
@@ -164,7 +162,7 @@ bool AsyncRPCOperation_saplingconsolidation::main_impl() {
                     LogPrint("zrpcunsafe", "%s: Missing Witnesses. Stopping.\n", getId());
                     break;
                 }
-                builder.AddSaplingSpend(extsk.expsk, notes[i], anchor, witnesses[i].get());
+                builder.AddSaplingSpend(extsk.expsk, notes[i], anchor, witnesses[i].value());
             }
 
             builder.SetFee(fConsolidationTxFee);
