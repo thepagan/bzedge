@@ -11,7 +11,9 @@
 #include "key_constants.h"
 #include <zcash/address/sapling.hpp>
 
-#include <boost/optional.hpp>
+#include <optional>
+#include <variant>
+
 
 namespace Consensus {
 
@@ -79,7 +81,7 @@ struct NetworkUpgrade {
      * scrutiny than regular releases. nMinimumChainWork MUST be set to at least the chain
      * work of this block, otherwise this detection will have false positives.
      */
-    boost::optional<uint256> hashActivationBlock;
+    std::optional<uint256> hashActivationBlock;
 };
 
 /** ZIP208 block target interval in seconds. */
@@ -147,7 +149,7 @@ struct Params {
     int nMajorityRejectBlockOutdated;
     int nMajorityWindow;
     NetworkUpgrade vUpgrades[MAX_NETWORK_UPGRADES];
-    
+
     /**
      * Default block height at which the future timestamp soft fork rule activates.
      *
@@ -192,7 +194,7 @@ struct Params {
     unsigned int nEquihashN = 0;
     unsigned int nEquihashK = 0;
     uint256 powLimit;
-    boost::optional<uint32_t> nPowAllowMinDifficultyBlocksAfterHeight;
+    std::optional<uint32_t> nPowAllowMinDifficultyBlocksAfterHeight;
     int64_t nPowAveragingWindow;
     int64_t nPowMaxAdjustDown;
     int64_t nPowMaxAdjustUp;

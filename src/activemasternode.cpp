@@ -429,7 +429,7 @@ bool CActiveMasternode::GetVinFromOutput(COutput out, CTxIn& vin, CPubKey& pubke
     CTxDestination address;
     ExtractDestination(pubScript, address);
 
-    CKeyID *keyID = boost::get<CKeyID>(&address);
+    CKeyID *keyID = std::get_if<CKeyID>(&address);
     if (!keyID) {
         LogPrintf("CActiveMasternode::GetMasterNodeVin - Address does not refer to a key\n");
         return false;

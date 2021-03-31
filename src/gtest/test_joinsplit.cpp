@@ -2,8 +2,6 @@
 
 #include "utilstrencodings.h"
 
-#include <boost/foreach.hpp>
-#include <boost/variant/get.hpp>
 
 #include "zcash/prf.h"
 #include "util.h"
@@ -12,6 +10,7 @@
 #include "serialize.h"
 #include "primitives/transaction.h"
 #include "proof_verifier.h"
+#include "transaction_builder.h"
 #include "zcash/JoinSplit.hpp"
 #include "zcash/Note.hpp"
 #include "zcash/NoteEncryption.hpp"
@@ -26,14 +25,14 @@ using namespace libzcash;
 // Make the Groth proof for a Sprout statement,
 // and store the result in a JSDescription object.
 JSDescription makeSproutProof(
-        const std::array<JSInput, 2>& inputs,
-        const std::array<JSOutput, 2>& outputs,
+        std::array<JSInput, 2>& inputs,
+        std::array<JSOutput, 2>& outputs,
         const Ed25519VerificationKey& joinSplitPubKey,
         uint64_t vpub_old,
         uint64_t vpub_new,
         const uint256& rt
 ){
-    return JSDescription(joinSplitPubKey, rt, inputs, outputs, vpub_old, vpub_new);
+    return JSDescriptionInfo(joinSplitPubKey, rt, inputs, outputs, vpub_old, vpub_new).BuildDeterministic();
 }
 
 bool verifySproutProof(
@@ -281,7 +280,7 @@ for test_input in TEST_VECTORS:
         }
     };
 
-    BOOST_FOREACH(std::vector<std::string>& v, tests) {
+    for (std::vector<std::string>& v : tests) {
         Ed25519VerificationKey joinSplitPubKey;
         auto pubKeyBytes = uint256S(v[3]);
         std::copy(pubKeyBytes.begin(), pubKeyBytes.end(), joinSplitPubKey.bytes);

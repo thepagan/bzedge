@@ -22,6 +22,7 @@
 #endif
 
 #include <stdint.h>
+#include <variant>
 
 #include <boost/assign/list_of.hpp>
 
@@ -78,7 +79,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
     pwalletMain->AvailableCoins(vecOutputs, true, NULL, false, true);
 
     // Find unspent coinbase utxos and update estimated size
-    BOOST_FOREACH(const COutput& out, vecOutputs) {
+    for (const COutput& out : vecOutputs) {
         if (!out.fSpendable) {
             continue;
         }
@@ -99,7 +100,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
 
     int nMinDepth = 1;
     CAmount nBalance = getBalanceTaddr("", nMinDepth, true);
-    CAmount nPrivateBalance = getBalanceZaddr("", nMinDepth, true);
+    CAmount nPrivateBalance = getBalanceZaddr("", nMinDepth, INT_MAX, true);
     CAmount nLockedCoin = pwalletMain->GetLockedCoins();
 
     CAmount nTotalBalance = nBalance + nPrivateBalance + nLockedCoin;
@@ -124,7 +125,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
 
     if (params.size() > 0 && (params[0].get_int() == 1 || params[0].get_int() == 0))
     {
-      BOOST_FOREACH(const PAIRTYPE(CTxDestination, CAddressBookData)& item, pwalletMain->mapAddressBook)
+      for (const std::pair<CTxDestination, CAddressBookData>& item : pwalletMain->mapAddressBook)
       {
           UniValue addr(UniValue::VOBJ);
           const CTxDestination& dest = item.first;
@@ -144,9 +145,9 @@ UniValue getalldata(const UniValue& params, bool fHelp)
           LOCK2(cs_main, pwalletMain->cs_wallet);
 
           map<CTxDestination, CAmount> balances = pwalletMain->GetAddressBalances();
-          BOOST_FOREACH(set<CTxDestination> grouping, pwalletMain->GetAddressGroupings())
+          for (set<CTxDestination> grouping : pwalletMain->GetAddressGroupings())
           {
-              BOOST_FOREACH(CTxDestination address, grouping)
+              for (CTxDestination address : grouping)
               {
                   UniValue addr(UniValue::VOBJ);
                   const string& strName = keyIO.EncodeDestination(address);
@@ -171,7 +172,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
               if (pwalletMain->HaveSproutSpendingKey(addr)) {
                   UniValue address(UniValue::VOBJ);
                   const string& strName = keyIO.EncodePaymentAddress(addr);
-                  nBalance = getBalanceZaddr(strName, nMinDepth, false);
+                  nBalance = getBalanceZaddr(strName, nMinDepth, INT_MAX, false);
                   address.pushKV("amount", ValueFromAmount(nBalance));
                   address.pushKV("ismine", true);
                   addrlist.pushKV(strName, address);
@@ -180,7 +181,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
               {
                   UniValue address(UniValue::VOBJ);
                   const string& strName = keyIO.EncodePaymentAddress(addr);
-                  nBalance = getBalanceZaddr(strName, nMinDepth, false);
+                  nBalance = getBalanceZaddr(strName, nMinDepth, INT_MAX, false);
                   address.pushKV("amount", ValueFromAmount(nBalance));
                   address.pushKV("ismine", false);
                   addrlist.pushKV(strName, address);
@@ -198,7 +199,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
                   if(pwalletMain->HaveSaplingSpendingKey(fvk)) {
                       UniValue address(UniValue::VOBJ);
                       const string& strName = keyIO.EncodePaymentAddress(addr);
-                      nBalance = getBalanceZaddr(strName, nMinDepth, false);
+                      nBalance = getBalanceZaddr(strName, nMinDepth, INT_MAX, false);
                       address.pushKV("amount", ValueFromAmount(nBalance));
                       address.pushKV("ismine", true);
                       addrlist.pushKV(strName, address);
@@ -207,7 +208,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
                   {
                       UniValue address(UniValue::VOBJ);
                       const string& strName = keyIO.EncodePaymentAddress(addr);
-                      nBalance = getBalanceZaddr(strName, nMinDepth, false);
+                      nBalance = getBalanceZaddr(strName, nMinDepth, INT_MAX, false);
                       address.pushKV("amount", ValueFromAmount(nBalance));
                       address.pushKV("ismine", false);
                       addrlist.pushKV(strName, address);
@@ -342,6 +343,8 @@ UniValue getinfo(const UniValue& params, bool fHelp)
 
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("version", CLIENT_VERSION);
+    obj.pushKV("build", FormatFullVersion());
+    obj.pushKV("subversion", strSubVersion);
     obj.pushKV("protocolversion", PROTOCOL_VERSION);
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
@@ -442,7 +445,7 @@ UniValue mnsync(const UniValue& params, bool fHelp)
 }
 
 #ifdef ENABLE_WALLET
-class DescribeAddressVisitor : public boost::static_visitor<UniValue>
+class DescribeAddressVisitor
 {
 public:
     UniValue operator()(const CNoDestination &dest) const { return UniValue(UniValue::VOBJ); }
@@ -574,7 +577,7 @@ UniValue validateaddress(const UniValue& params, bool fHelp)
         isminetype mine = pwalletMain ? IsMine(*pwalletMain, dest) : ISMINE_NO;
         ret.pushKV("ismine", (mine & ISMINE_SPENDABLE) ? true : false);
         ret.pushKV("iswatchonly", (mine & ISMINE_WATCH_ONLY) ? true: false);
-        UniValue detail = boost::apply_visitor(DescribeAddressVisitor(), dest);
+        UniValue detail = std::visit(DescribeAddressVisitor(), dest);
         ret.pushKVs(detail);
         if (pwalletMain && pwalletMain->mapAddressBook.count(dest))
             ret.pushKV("account", pwalletMain->mapAddressBook[dest].name);
@@ -584,7 +587,7 @@ UniValue validateaddress(const UniValue& params, bool fHelp)
 }
 
 
-class DescribePaymentAddressVisitor : public boost::static_visitor<UniValue>
+class DescribePaymentAddressVisitor
 {
 public:
     UniValue operator()(const libzcash::InvalidEncoding &zaddr) const { return UniValue(UniValue::VOBJ); }
@@ -658,7 +661,7 @@ UniValue z_validateaddress(const UniValue& params, bool fHelp)
     if (isValid)
     {
         ret.pushKV("address", strAddress);
-        UniValue detail = boost::apply_visitor(DescribePaymentAddressVisitor(), address);
+        UniValue detail = std::visit(DescribePaymentAddressVisitor(), address);
         ret.pushKVs(detail);
     }
     return ret;
@@ -694,7 +697,7 @@ CScript _createmultisig_redeemScript(const UniValue& params)
         // Case 1: Bitcoin address and we have full public key:
         CTxDestination dest = keyIO.DecodeDestination(ks);
         if (pwalletMain && IsValidDestination(dest)) {
-            const CKeyID *keyID = boost::get<CKeyID>(&dest);
+            const CKeyID *keyID = std::get_if<CKeyID>(&dest);
             if (!keyID) {
                 throw std::runtime_error(strprintf("%s does not refer to a key", ks));
             }
@@ -809,7 +812,7 @@ UniValue verifymessage(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
     }
 
-    const CKeyID *keyID = boost::get<CKeyID>(&destination);
+    const CKeyID *keyID = std::get_if<CKeyID>(&destination);
     if (!keyID) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
     }
@@ -855,7 +858,7 @@ UniValue setmocktime(const UniValue& params, bool fHelp)
     SetMockTime(params[0].get_int64());
 
     uint64_t t = GetTime();
-    BOOST_FOREACH(CNode* pnode, vNodes) {
+    for (CNode* pnode : vNodes) {
         pnode->nLastSend = pnode->nLastRecv = t;
     }
 
@@ -909,13 +912,13 @@ static bool getIndexKey(
         return false;
     }
     if (IsKeyDestination(dest)) {
-        auto x = boost::get<CKeyID>(&dest);
+        auto x = std::get_if<CKeyID>(&dest);
         memcpy(&hashBytes, x->begin(), 20);
         type = CScript::P2PKH;
         return true;
     }
     if (IsScriptDestination(dest)) {
-        auto x = boost::get<CScriptID>(&dest);
+        auto x = std::get_if<CScriptID>(&dest);
         memcpy(&hashBytes, x->begin(), 20);
         type = CScript::P2SH;
         return true;

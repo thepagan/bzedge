@@ -1,5 +1,4 @@
-OSX_MIN_VERSION=10.12
-OSX_SDK_VERSION=10.15.1
+OSX_MIN_VERSION=10.14
 XCODE_VERSION=11.3.1
 XCODE_BUILD_ID=11C505
 LD64_VERSION=530
@@ -37,7 +36,7 @@ darwin_CXXFLAGS=$(darwin_CFLAGS)
 darwin_release_CFLAGS=-O3
 darwin_release_CXXFLAGS=$(darwin_release_CFLAGS)
 
-darwin_debug_CFLAGS=-O1
+darwin_debug_CFLAGS=-O0
 darwin_debug_CXXFLAGS=$(darwin_debug_CFLAGS)
 
 darwin_native_binutils=native_cctools

@@ -6,8 +6,6 @@
 
 #include "test_bitcoin.h"
 
-#include "crypto/common.h"
-
 #include "chainparams.h"
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
@@ -28,13 +26,17 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/thread.hpp>
+#include <sodium.h>
 
 #include "librustzcash.h"
+
+const std::function<std::string(const char*)> G_TRANSLATION_FUN = nullptr;
 
 CClientUIInterface uiInterface; // Declared but not defined in ui_interface.h
 
 TracingHandle* pTracingHandle = nullptr;
-FastRandomContext insecure_rand_ctx(true);
+uint256 insecure_rand_seed = GetRandHash();
+FastRandomContext insecure_rand_ctx(insecure_rand_seed);
 
 extern bool fPrintToConsole;
 extern void noui_connect();
@@ -68,7 +70,7 @@ JoinSplitTestingSetup::~JoinSplitTestingSetup()
 
 BasicTestingSetup::BasicTestingSetup(const std::string& chainName)
 {
-    assert(init_and_check_sodium() != -1);
+    assert(sodium_init() != -1);
     ECC_Start();
     SetupEnvironment();
     SetupNetworking();
@@ -156,7 +158,7 @@ TestChain100Setup::CreateAndProcessBlock(const std::vector<CMutableTransaction>&
 
     // Replace mempool-selected txns with just coinbase plus passed-in txns:
     block.vtx.resize(1);
-    BOOST_FOREACH(const CMutableTransaction& tx, txns)
+    for (const CMutableTransaction& tx : txns)
         block.vtx.push_back(tx);
     // IncrementExtraNonce creates a valid coinbase and merkleRoot
     unsigned int extraNonce = 0;

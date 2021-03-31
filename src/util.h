@@ -28,7 +28,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/signals2/signal.hpp>
 #include <boost/thread/exceptions.hpp>
 
 extern bool fEnableSwiftTX;
@@ -38,14 +37,6 @@ extern bool fLiteMode;
 extern int nZcashSendRounds;
 extern int nAnonymizeZcashAmount;
 extern int nLiquidityProvider;
-
-/** Signals for translation. */
-class CTranslationInterface
-{
-public:
-    /** Translate a message to the native language of the user. */
-    boost::signals2::signal<std::string (const char* psz)> Translate;
-};
 
 //Dash only features
 extern bool fEnableZcashSend;
@@ -60,21 +51,19 @@ extern std::map<std::string, std::vector<std::string> > mapMultiArgs;
 extern bool fDebug;
 extern bool fServer;
 
-extern CTranslationInterface translationInterface;
-
-[[noreturn]] extern void new_handler_terminate();
-
 extern const char * const BITCOIN_CONF_FILENAME;
 extern const char * const BITCOIN_PID_FILENAME;
 
+/** Translate a message to the native language of the user. */
+const extern std::function<std::string(const char*)> G_TRANSLATION_FUN;
+
 /**
- * Translation function: Call Translate signal on UI interface, which returns a boost::optional result.
- * If no translation slot is registered, nothing is returned, and simply return the input.
+ * Translation function.
+ * If no translation function is set, simply return the input.
  */
 inline std::string _(const char* psz)
 {
-    boost::optional<std::string> rv = translationInterface.Translate(psz);
-    return rv ? (*rv) : psz;
+    return G_TRANSLATION_FUN ? (G_TRANSLATION_FUN)(psz) : psz;
 }
 
 void SetupEnvironment();

@@ -10,6 +10,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <optional>
 #include <string>
 
 struct AtomicCounter {
@@ -78,7 +79,7 @@ int EstimateNetHeight(const Consensus::Params& params, int currentBlockHeight, i
 int MyEstimateNetHeight();
 void MarkDownloadStart(int height);
 int64_t GetDownloadSpeed(int height);
-boost::optional<int64_t> SecondsLeftToNextEpoch(const Consensus::Params& params, int currentHeight);
+std::optional<int64_t> SecondsLeftToNextEpoch(const Consensus::Params& params, int currentHeight);
 std::string DisplayDuration(int64_t time, DurationFormat format);
 std::string DisplaySize(size_t value);
 std::string DisplayHashRate(double value);

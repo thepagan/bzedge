@@ -52,6 +52,7 @@ src/univalue/gen
 *.orig
 *.pyc
 *.o
+*.o.tmp
 *.o-*
 .zcash
 *.a
@@ -104,16 +105,15 @@ afl-temp
 linux-coverage-build
 linux-build
 win32-build
-qa/pull-tester/run-bitcoind-for-test.sh
-qa/pull-tester/tests-config.sh
-qa/pull-tester/cache/*
-qa/pull-tester/test.*/*
+qa/pull-tester/tests_config.py
+qa/pull-tester/tests_config.ini
+qa/cache/*
 
 !src/leveldb*/Makefile
 
 /doc/doxygen/
 
-libzcashconsensus.pc
+libzcash_script.pc
 
 contrib/debian/files
 contrib/debian/substvars
@@ -121,3 +121,5 @@ contrib/debian/substvars
 src/fuzzing/*/input
 src/fuzzing/*/output
 src/fuzz.cpp
+
+.updatecheck-token
