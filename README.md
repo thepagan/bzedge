@@ -146,7 +146,7 @@ your_alias ${WANIP}:${PORT} ${masternodeprivkey} TxID Output_Index
 *your_alias*, *TxID* and *Output_Index* are the ones we will have to change. You'll find out more soon.
 
 ###### Control wallet
-Using [Tent Desktop Wallet](https://tent.app/wallet) you have an easy and beautiful way of interacting with your MN.
+Using [Tent Desktop Wallet](https://github.com/TENTOfficial/TENT-Core/releases/tag/v1.1.4) you have an easy and beautiful way of interacting with your MN.
 Go ahead and install it if you haven't already.\
 After the control wallet is synced and ready to be used create a *new BZE address* and send exactly 250,000 BZE to it.
 The resulting transaction will be your MN *TxID* - copy it and keep it safe in a text editor.
