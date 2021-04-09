@@ -1,5 +1,5 @@
 
-<img width="612" height="613" src="doc/imgs/bzedge-logo.png">
+<img height="204" src="doc/imgs/bzedge-logo.png">
 
 ### Checkout latest releases here: https://github.com/bze-alphateam/bzedge/releases
 
@@ -15,8 +15,8 @@ Install
 -----------------
 ### Linux
 
-
 Get dependencies
+Ubuntu/Debian:
 ```{r, engine='bash'}
 sudo apt-get install \
       build-essential pkg-config libc6-dev m4 g++-multilib \
@@ -24,31 +24,54 @@ sudo apt-get install \
       zlib1g-dev wget bsdmainutils automake
 ```
 
+Get dependencies
+Free/OpenBSD:
+```{r, engine='bash'}
+sudo pkg install \
+      gmake pkgconf flock automake lang/gcc autoconf libtool ncurses git python 
+```
+
+
 Install
 
 ```{r, engine='bash'}
 # Clone BZEdge Repository
 git clone https://github.com/bze-alphateam/bzedge
+
 # Build: At the moment building works only without tests. Make sure to disable them.
 cd bzedge/
+
+Ubuntu/Debian:
 CONFIGURE_FLAGS="--disable-tests --disable-bench" ./zcutil/build.sh -j$(nproc)
+
+BSD:
+MAKE=gmake CONFIGURE_FLAGS="--disable-tests --disable-bench" ./zcutil/build.sh -j 2
+
 # fetch key
 ./zcutil/fetch-params.sh
+
 # Run
 ./src/bzedged
+
 # Test getting information about the network
 cd src/
 ./bzedge-cli getmininginfo
+
 # Test creating new transparent address
 ./bzedge-cli getnewaddress
+
 # Test creating new private address
 ./bzedge-cli z_getnewaddress
+
 # Test checking transparent balance
 ./bzedge-cli getbalance
+
 # Test checking total balance 
 ./bzedge-cli z_gettotalbalance
+
 # Check all available wallet commands
 ./bzedge-cli help
+
 # Get more info about a single wallet command
 ./bzedge-cli help "The-command-you-want-to-learn-more-about"
 ./bzedge-cli help "getbalance"
