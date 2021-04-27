@@ -6597,9 +6597,13 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
             else
             {
                 if (fBlocksOnly)
+                {
                     LogPrint("net", "transaction (%s) inv sent in violation of protocol peer=%d\n", inv.hash.ToString(), pfrom->id);
+                }
                 else if (!fAlreadyHave && !IsInitialBlockDownload(chainparams.GetConsensus()))
+                {
                     pfrom->AskFor(inv);
+                }
             }
 
             // Track requests for our stuff
