@@ -390,7 +390,8 @@ UniValue mnsync(const UniValue& params, bool fHelp)
 
             "\nResult ('status' mode):\n"
             "{\n"
-            "  \"IsBlockchainSynced\": true|false,    (boolean) 'true' if blockchain is synced\n"
+            "  \"IsBlockchainSynced\": true|false,  (boolean) 'true' if blockchain is synced\n"
+            "  \"IsSynced\": true|false,            (boolean) 'true' if masternode sync is finished\n"
             "  \"lastMasternodeList\": xxxx,        (numeric) Timestamp of last MN list message\n"
             "  \"lastMasternodeWinner\": xxxx,      (numeric) Timestamp of last MN winner message\n"
             "  \"lastBudgetItem\": xxxx,            (numeric) Timestamp of last MN budget message\n"
@@ -418,6 +419,7 @@ UniValue mnsync(const UniValue& params, bool fHelp)
         UniValue obj(UniValue::VOBJ);
 
         obj.pushKV("IsBlockchainSynced", masternodeSync.IsBlockchainSynced());
+        obj.pushKV("IsSynced", masternodeSync.IsSynced());
         obj.pushKV("lastMasternodeList", masternodeSync.lastMasternodeList);
         obj.pushKV("lastMasternodeWinner", masternodeSync.lastMasternodeWinner);
         obj.pushKV("lastBudgetItem", masternodeSync.lastBudgetItem);
