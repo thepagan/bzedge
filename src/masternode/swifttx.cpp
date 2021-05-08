@@ -15,6 +15,7 @@
 #include "sync.h"
 #include "util.h"
 #include "consensus/validation.h"
+#include "reverse_iterator.h"
 #include <boost/lexical_cast.hpp>
 
 using namespace std;
@@ -221,9 +222,9 @@ int64_t CreateNewLock(CTransaction tx)
 {
     int64_t nTxAge = 0;
     //BOOST_REVERSE_FOREACH (CTxIn i, tx.vin)
-    for (auto it_i = tx.vin.rbegin() ; it_i != tx.vin.rend() ; ++it_i)
+    for (auto i : reverse_iterate(tx.vin))
     {
-        nTxAge = GetInputAge((CTxIn&)(*it_i));
+        nTxAge = GetInputAge(i);
         if (nTxAge < 5) //1 less than the "send IX" gui requires, incase of a block propagating the network at the time
         {
             LogPrintf("CreateNewLock - Transaction not found / too new: %d / %s\n", nTxAge, tx.GetHash().ToString().c_str());

@@ -13,6 +13,7 @@
 #include "masternode/swifttx.h"
 #include "ui_interface.h"
 #include "util.h"
+#include "reverse_iterator.h"
 #include "consensus/validation.h"
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
@@ -1809,12 +1810,12 @@ bool CObfuscationPool::CreateDenominated(CAmount nTotalValue)
 
     // ****** Add denoms ************ /
     //BOOST_REVERSE_FOREACH (CAmount v, obfuScationDenominations)
-    for (auto it_v = obfuScationDenominations.rbegin() ; it_v != obfuScationDenominations.rend() ; ++it_v)
+    for (auto v : reverse_iterate(obfuScationDenominations))
     {
         int nOutputs = 0;
 
         // add each output up to 10 times until it can't be added again
-        while (nValueLeft - *it_v >= OBFUSCATION_COLLATERAL && nOutputs <= 10) {
+        while (nValueLeft - v >= OBFUSCATION_COLLATERAL && nOutputs <= 10) {
             CScript scriptDenom;
             CPubKey vchPubKey;
             //use a unique change address
@@ -1823,12 +1824,12 @@ bool CObfuscationPool::CreateDenominated(CAmount nTotalValue)
             // TODO: do not keep reservekeyDenom here
             reservekeyDenom.KeepKey();
 
-            CRecipient recipient = {scriptDenom, *it_v, false};
+            CRecipient recipient = {scriptDenom, v, false};
             vecSend.push_back(recipient);
 
             //increment outputs and subtract denomination amount
             nOutputs++;
-            nValueLeft -= *it_v;
+            nValueLeft -= v;
             LogPrintf("CreateDenominated1 %d\n", nValueLeft);
         }
 
@@ -2032,9 +2033,9 @@ int CObfuscationPool::GetDenominationsByAmounts(std::vector<CAmount>& vecAmount)
 
     // Make outputs by looping through denominations, from small to large
     //BOOST_REVERSE_FOREACH (CAmount v, vecAmount)
-    for (auto it_v = vecAmount.rbegin() ; it_v != vecAmount.rend() ; ++it_v)
+    for (auto v : reverse_iterate(vecAmount))
     {
-        CTxOut o(*it_v, e);
+        CTxOut o(v, e);
         vout1.push_back(o);
     }
 
@@ -2050,17 +2051,17 @@ int CObfuscationPool::GetDenominationsByAmount(CAmount nAmount, int nDenomTarget
 
     // Make outputs by looping through denominations, from small to large
     //BOOST_REVERSE_FOREACH (CAmount v, obfuScationDenominations)
-    for (auto it_v = obfuScationDenominations.rbegin() ; it_v != obfuScationDenominations.rend() ; ++it_v)
+    for (auto v : reverse_iterate(obfuScationDenominations))
     {
         if (nDenomTarget != 0) {
             bool fAccepted = false;
-            if ((nDenomTarget & (1 << 0)) && *it_v == ((100 * COIN) + 100000)) {
+            if ((nDenomTarget & (1 << 0)) && v == ((100 * COIN) + 100000)) {
                 fAccepted = true;
-            } else if ((nDenomTarget & (1 << 1)) && *it_v == ((10 * COIN) + 10000)) {
+            } else if ((nDenomTarget & (1 << 1)) && v == ((10 * COIN) + 10000)) {
                 fAccepted = true;
-            } else if ((nDenomTarget & (1 << 2)) && *it_v == ((1 * COIN) + 1000)) {
+            } else if ((nDenomTarget & (1 << 2)) && v == ((1 * COIN) + 1000)) {
                 fAccepted = true;
-            } else if ((nDenomTarget & (1 << 3)) && *it_v == ((.1 * COIN) + 100)) {
+            } else if ((nDenomTarget & (1 << 3)) && v == ((.1 * COIN) + 100)) {
                 fAccepted = true;
             }
             if (!fAccepted) continue;
@@ -2069,13 +2070,13 @@ int CObfuscationPool::GetDenominationsByAmount(CAmount nAmount, int nDenomTarget
         int nOutputs = 0;
 
         // add each output up to 10 times until it can't be added again
-        while (nValueLeft - *it_v >= 0 && nOutputs <= 10) {
-            CTxOut o(*it_v, e);
+        while (nValueLeft - v >= 0 && nOutputs <= 10) {
+            CTxOut o(v, e);
             vout1.push_back(o);
-            nValueLeft -= *it_v;
+            nValueLeft -= v;
             nOutputs++;
         }
-        LogPrintf("GetDenominationsByAmount --- %d nOutputs %d\n", *it_v, nOutputs);
+        LogPrintf("GetDenominationsByAmount --- %d nOutputs %d\n", v, nOutputs);
     }
 
     return GetDenominations(vout1);
