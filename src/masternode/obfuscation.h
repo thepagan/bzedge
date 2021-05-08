@@ -8,10 +8,10 @@
 #define OBFUSCATION_H
 
 #include "main.h"
-#include "masternode-payments.h"
-#include "masternode-sync.h"
-#include "masternodeman.h"
-#include "obfuscation-relay.h"
+#include "masternode/masternode-payments.h"
+#include "masternode/masternode-sync.h"
+#include "masternode/masternodeman.h"
+#include "masternode/obfuscation-relay.h"
 #include "sync.h"
 
 class CTxIn;

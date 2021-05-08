@@ -9,9 +9,9 @@
 
 #include "init.h"
 #include "key.h"
-#include "masternode.h"
+#include "masternode/masternode.h"
 #include "net.h"
-#include "obfuscation.h"
+#include "masternode/obfuscation.h"
 #include "sync.h"
 #include "wallet/wallet.h"
 

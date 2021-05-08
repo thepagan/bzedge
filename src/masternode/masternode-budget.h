@@ -11,7 +11,7 @@
 #include "init.h"
 #include "key.h"
 #include "main.h"
-#include "masternode.h"
+#include "masternode/masternode.h"
 #include "net.h"
 #include "sync.h"
 #include "util.h"

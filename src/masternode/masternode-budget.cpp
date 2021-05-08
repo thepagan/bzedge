@@ -8,11 +8,11 @@
 #include "main.h"
 
 #include "addrman.h"
-#include "masternode-budget.h"
-#include "masternode-sync.h"
-#include "masternode.h"
-#include "masternodeman.h"
-#include "obfuscation.h"
+#include "masternode/masternode-budget.h"
+#include "masternode/masternode-sync.h"
+#include "masternode/masternode.h"
+#include "masternode/masternodeman.h"
+#include "masternode/obfuscation.h"
 #include "util.h"
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>

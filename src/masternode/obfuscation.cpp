@@ -4,13 +4,13 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "obfuscation.h"
+#include "masternode/obfuscation.h"
 #include "coincontrol.h"
 #include "init.h"
 #include "main.h"
-#include "masternodeman.h"
+#include "masternode/masternodeman.h"
 #include "script/sign.h"
-#include "swifttx.h"
+#include "masternode/swifttx.h"
 #include "ui_interface.h"
 #include "util.h"
 #include "consensus/validation.h"

@@ -14,7 +14,7 @@
 #include "addrman.h"
 #include "chainparams.h"
 #include "clientversion.h"
-#include "obfuscation.h"
+#include "masternode/obfuscation.h"
 #include "consensus/consensus.h"
 #include "crypto/common.h"
 #include "crypto/sha256.h"
@@ -23,7 +23,7 @@
 #include "scheduler.h"
 #include "ui_interface.h"
 #include "crypto/common.h"
-#include "masternodeman.h"
+#include "masternode/masternodeman.h"
 
 #ifdef WIN32
 #include <string.h>

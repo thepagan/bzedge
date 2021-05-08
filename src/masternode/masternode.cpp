@@ -4,10 +4,10 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "masternode.h"
+#include "masternode/masternode.h"
 #include "addrman.h"
-#include "masternodeman.h"
-#include "obfuscation.h"
+#include "masternode/masternodeman.h"
+#include "masternode/obfuscation.h"
 #include "sync.h"
 #include "util.h"
 #include "consensus/validation.h"

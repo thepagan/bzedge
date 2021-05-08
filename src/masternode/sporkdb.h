@@ -7,7 +7,7 @@
 
 #include <boost/filesystem/path.hpp>
 #include "dbwrapper.h"
-#include "spork.h"
+#include "masternode/spork.h"
 
 class CSporkDB : public CDBWrapper
 {

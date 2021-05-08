@@ -4,12 +4,12 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "masternodeman.h"
-#include "activemasternode.h"
+#include "masternode/masternodeman.h"
+#include "masternode/activemasternode.h"
 #include "addrman.h"
-#include "masternode.h"
-#include "obfuscation.h"
-#include "spork.h"
+#include "masternode/masternode.h"
+#include "masternode/obfuscation.h"
+#include "masternode/spork.h"
 #include "util.h"
 #include "consensus/validation.h"
 #include <boost/filesystem.hpp>

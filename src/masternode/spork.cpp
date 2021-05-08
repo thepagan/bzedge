@@ -3,15 +3,15 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "spork.h"
+#include "masternode/spork.h"
 #include "base58.h"
 #include "key.h"
 #include "main.h"
-#include "masternode-budget.h"
+#include "masternode/masternode-budget.h"
 #include "net.h"
 #include "protocol.h"
 #include "sync.h"
-#include "sporkdb.h"
+#include "masternode/sporkdb.h"
 #include "util.h"
 #include "consensus/validation.h"
 #include <boost/lexical_cast.hpp>

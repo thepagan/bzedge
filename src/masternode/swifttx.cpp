@@ -3,15 +3,15 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "swifttx.h"
-#include "activemasternode.h"
+#include "masternode/swifttx.h"
+#include "masternode/activemasternode.h"
 #include "base58.h"
 #include "key.h"
-#include "masternodeman.h"
+#include "masternode/masternodeman.h"
 #include "net.h"
-#include "obfuscation.h"
+#include "masternode/obfuscation.h"
 #include "protocol.h"
-#include "spork.h"
+#include "masternode/spork.h"
 #include "sync.h"
 #include "util.h"
 #include "consensus/validation.h"
