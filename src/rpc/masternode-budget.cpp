@@ -610,7 +610,8 @@ UniValue getbudgetprojection(const UniValue& params, bool fHelp)
     CAmount nTotalAllotted = 0;
 
     std::vector<CBudgetProposal*> winningProps = budget.GetBudget();
-    BOOST_FOREACH (CBudgetProposal* pbudgetProposal, winningProps) {
+    for (CBudgetProposal* pbudgetProposal : winningProps)
+    {
         nTotalAllotted += pbudgetProposal->GetAllotted();
 
         CTxDestination address1;
@@ -679,7 +680,8 @@ UniValue getbudgetinfo(const UniValue& params, bool fHelp)
     }
 
     std::vector<CBudgetProposal*> winningProps = budget.GetAllProposals();
-    BOOST_FOREACH (CBudgetProposal* pbudgetProposal, winningProps) {
+    for (CBudgetProposal* pbudgetProposal : winningProps)
+    {
         if (strShow == "valid" && !pbudgetProposal->fValid) continue;
 
         UniValue bObj(UniValue::VOBJ);
@@ -884,7 +886,8 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
         UniValue resultObj(UniValue::VOBJ);
 
         std::vector<CFinalizedBudget*> winningFbs = budget.GetFinalizedBudgets();
-        BOOST_FOREACH (CFinalizedBudget* finalizedBudget, winningFbs) {
+        for (CFinalizedBudget* finalizedBudget : winningFbs)
+        {
             UniValue bObj(UniValue::VOBJ);
             bObj.pushKV("FeeTX", finalizedBudget->nFeeTXHash.ToString());
             bObj.pushKV("Hash", finalizedBudget->GetHash().ToString());

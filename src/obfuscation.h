@@ -117,11 +117,15 @@ public:
             return false;
         }
 
-        BOOST_FOREACH (const CTxIn& in, vinIn)
-            sev.push_back(in);
+        for (const CTxIn& in : vinIn)
+        {
+            sev.push_back(in); 
+        }
 
-        BOOST_FOREACH (const CTxOut& out, voutIn)
-            vout.push_back(out);
+        for (const CTxOut& out : voutIn)
+        {
+            vout.push_back(out);    
+        }
 
         amount = amountIn;
         collateral = collateralIn;
@@ -133,7 +137,8 @@ public:
 
     bool AddSig(const CTxIn& vin)
     {
-        BOOST_FOREACH (CTxDSIn& s, sev) {
+        for (CTxDSIn& s : sev)
+        {
             if (s.prevout == vin.prevout && s.nSequence == vin.nSequence) {
                 if (s.fHasSig) {
                     return false;

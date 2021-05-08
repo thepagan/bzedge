@@ -534,7 +534,7 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
 	// //require at least 6 signatures
     if (Params().GetConsensus().NetworkUpgradeActive(nBlockHeight, Consensus::UPGRADE_BZSHARES)) {
         
-        BOOST_FOREACH (CMasternodePayee& payee, vecPayments)
+        for (CMasternodePayee& payee : vecPayments)
         {
             LogPrint("masternode","Masternode payment nVotes=%d nMaxSignatures=%d\n", payee.nVotes, nMaxSignatures);
             if (payee.nVotes >= nMaxSignatures && payee.nVotes >= MNPAYMENTS_SIGNATURES_REQUIRED)
@@ -545,9 +545,11 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
         if (nMaxSignatures < MNPAYMENTS_SIGNATURES_REQUIRED) return true;
     }	
 
-    BOOST_FOREACH (CMasternodePayee& payee, vecPayments) {
+    for (CMasternodePayee& payee : vecPayments)
+    {
         bool found = false;
-        BOOST_FOREACH (CTxOut out, txNew.vout) {
+        for (CTxOut out : txNew.vout)
+        {
             if (payee.scriptPubKey == out.scriptPubKey) {
                 LogPrint("masternode","Masternode payment Paid=%s Min=%s\n", FormatMoney(out.nValue).c_str(), FormatMoney(requiredMasternodePayment).c_str());
                 if(out.nValue >= requiredMasternodePayment)
@@ -572,7 +574,8 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
     }
 
     LogPrint("mnpaymentpayee", "Transaction output: ");
-    BOOST_FOREACH (CTxOut out, txNew.vout) {
+    for (CTxOut out : txNew.vout)
+    {
         LogPrint("mnpaymentpayee","%ld,", out.nValue);
     }
     LogPrint("mnpaymentpayee","\nCMasternodePayments::IsTransactionValid - Missing required payment of %s to %s\n", FormatMoney(requiredMasternodePayment).c_str(), strPayeesPossible.c_str());
@@ -587,7 +590,8 @@ std::string CMasternodeBlockPayees::GetRequiredPaymentsString()
 
     KeyIO keyIO(Params());
 
-    BOOST_FOREACH (CMasternodePayee& payee, vecPayments) {
+    for (CMasternodePayee& payee : vecPayments)
+    {
         CTxDestination address1;
         ExtractDestination(payee.scriptPubKey, address1);
 

@@ -669,8 +669,11 @@ public:
         //Used with Obfuscation. Will return largest nondenom, then denominations, then very small inputs
     int Priority() const
     {
-        BOOST_FOREACH (CAmount d, obfuScationDenominations)
-            if (tx->vout[i].nValue == d) return 10000;
+        for (CAmount d : obfuScationDenominations)
+        {
+            if (tx->vout[i].nValue == d) return 10000;            
+        }
+
         if (tx->vout[i].nValue < 1 * COIN) return 20000;
 
         //nondenom return largest first

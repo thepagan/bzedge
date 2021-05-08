@@ -628,7 +628,8 @@ UniValue getmasternodeoutputs (const UniValue& params, bool fHelp)
     vector<COutput> possibleCoins = activeMasternode.SelectCoinsMasternode();
 
     UniValue ret(UniValue::VARR);
-    BOOST_FOREACH (COutput& out, possibleCoins) {
+    for (COutput& out : possibleCoins)
+    {
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("txhash", out.tx->GetHash().ToString());
         obj.pushKV("outputidx", out.i);
@@ -812,7 +813,8 @@ UniValue getmasternodewinners (const UniValue& params, bool fHelp)
             UniValue winner(UniValue::VARR);
             boost::char_separator<char> sep(",");
             boost::tokenizer< boost::char_separator<char> > tokens(strPayment, sep);
-            BOOST_FOREACH (const string& t, tokens) {
+            for (const string& t : tokens)
+            {
                 UniValue addr(UniValue::VOBJ);
                 std::size_t pos = t.find(":");
                 std::string strAddress = t.substr(0,pos);
@@ -884,7 +886,8 @@ UniValue getmasternodescores (const UniValue& params, bool fHelp)
     for (int height = nHeight; height < chainActive.Tip()->nHeight + 20; height++) {
         arith_uint256 nHigh = 0;
         CMasternode* pBestMasternode = NULL;
-        BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+        for (CMasternode& mn : vMasternodes)
+        {
             arith_uint256 n = mn.CalculateScore(blockHash);
             if (n > nHigh) {
                 nHigh = n;
