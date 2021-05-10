@@ -1,8 +1,7 @@
 package=native_rust
 $(package)_version=1.49.0
 $(package)_download_path=https://static.rust-lang.org/dist
-$(package)_file_name_linux=rust-$($(package)_version)-aarch64-unknown-linux-gnu.tar.gz
-$(package)_sha256_hash_linux=b551bd482041307fa3373a687d6d6a2c4c0931c2e0a68b8b75dc80bc5cf5f002
+$(package)_file_name_linux=rust-$($(package)_version)-aarch64-unknown-linux-gnu.tar.g
 $(package)_file_name_darwin=rust-$($(package)_version)-aarch64-apple-darwin.tar.gz
 $(package)_sha256_hash_darwin=fe3e248bc4b0ee0a2595693687ad845c8a8bda824a56c9321520bcca02433716
 $(package)_file_name_freebsd=rust-$($(package)_version)-aarch64-unknown-freebsd.tar.gz
@@ -15,7 +14,7 @@ $(package)_rust_target_aarch64-pc-linux-gnu=aarch64-unknown-linux-gnu
 $(package)_rust_target_aarch64-w64-mingw32=aarch64-pc-windows-gnu
 
 # Mapping from Rust targets to SHA-256 hashes
-$(package)_rust_std_sha256_hash_aarch64-unknown-linux-gnu=b551bd482041307fa3373a687d6d6a2c4c0931c2e0a68b8b75dc80bc5cf5f002
+$(package)_rust_std_sha256_hash_aarch64-unknown-linux-gnu
 $(package)_rust_std_sha256_hash_aarch64-apple-darwin=c4389a8534b8da3ae3570646d68fea9a25268b17ed138867e31d4517312759af
 $(package)_rust_std_sha256_hash_aarch64-pc-windows-gnu=61275ed8bb8350e58e619a99104b8ba9a4bdd715b2ce03e20cb33f5b19e84a9c
 
