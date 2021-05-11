@@ -21,24 +21,24 @@
 CMasternodeMan mnodeman;
 
 struct CompareLastPaid {
-    bool operator()(const pair<int64_t, CTxIn>& t1,
-        const pair<int64_t, CTxIn>& t2) const
+    bool operator()(const std::pair<int64_t, CTxIn>& t1,
+        const std::pair<int64_t, CTxIn>& t2) const
     {
         return t1.first < t2.first;
     }
 };
 
 struct CompareScoreTxIn {
-    bool operator()(const pair<int64_t, CTxIn>& t1,
-        const pair<int64_t, CTxIn>& t2) const
+    bool operator()(const std::pair<int64_t, CTxIn>& t1,
+        const std::pair<int64_t, CTxIn>& t2) const
     {
         return t1.first < t2.first;
     }
 };
 
 struct CompareScoreMN {
-    bool operator()(const pair<int64_t, CMasternode>& t1,
-        const pair<int64_t, CMasternode>& t2) const
+    bool operator()(const std::pair<int64_t, CMasternode>& t1,
+        const std::pair<int64_t, CMasternode>& t2) const
     {
         return t1.first < t2.first;
     }
@@ -67,7 +67,7 @@ bool CMasternodeDB::Write(const CMasternodeMan& mnodemanToSave)
     ssMasternodes << hash;
 
     // open output file, and associate with CAutoFile
-    FILE* file = fopen(pathMN.string().c_str(), "wb");
+    FILE* file = fsbridge::fopen(pathMN, "wb");
     CAutoFile fileout(file, SER_DISK, CLIENT_VERSION);
     if (fileout.IsNull())
         return error("%s : Failed to open file %s", __func__, pathMN.string());
@@ -75,7 +75,7 @@ bool CMasternodeDB::Write(const CMasternodeMan& mnodemanToSave)
     // Write and commit header, data
     try {
         fileout << ssMasternodes;
-    } catch (std::exception& e) {
+    } catch (const std::exception& e) {
         return error("%s : Serialize or I/O error - %s", __func__, e.what());
     }
     //    FileCommit(fileout);
@@ -91,7 +91,7 @@ CMasternodeDB::ReadResult CMasternodeDB::Read(CMasternodeMan& mnodemanToLoad, bo
 {
     int64_t nStart = GetTimeMillis();
     // open input file, and associate with CAutoFile
-    FILE* file = fopen(pathMN.string().c_str(), "rb");
+    FILE* file = fsbridge::fopen(pathMN, "rb");
     CAutoFile filein(file, SER_DISK, CLIENT_VERSION);
     if (filein.IsNull()) {
         error("%s : Failed to open file %s", __func__, pathMN.string());
@@ -99,12 +99,12 @@ CMasternodeDB::ReadResult CMasternodeDB::Read(CMasternodeMan& mnodemanToLoad, bo
     }
 
     // use file size to size memory buffer
-    int fileSize = boost::filesystem::file_size(pathMN);
+    int fileSize = fs::file_size(pathMN);
     int dataSize = fileSize - sizeof(uint256);
     // Don't try to resize to a negative number if file is small
     if (dataSize < 0)
         dataSize = 0;
-    vector<unsigned char> vchData;
+    std::vector<unsigned char> vchData;
     vchData.resize(dataSize);
     uint256 hashIn;
 
@@ -112,7 +112,7 @@ CMasternodeDB::ReadResult CMasternodeDB::Read(CMasternodeMan& mnodemanToLoad, bo
     try {
         filein.read((char*)&vchData[0], dataSize);
         filein >> hashIn;
-    } catch (std::exception& e) {
+    } catch (const std::exception& e) {
         error("%s : Deserialize or I/O error - %s", __func__, e.what());
         return HashReadError;
     }
@@ -150,7 +150,7 @@ CMasternodeDB::ReadResult CMasternodeDB::Read(CMasternodeMan& mnodemanToLoad, bo
         }
         // de-serialize data into CMasternodeMan object
         ssMasternodes >> mnodemanToLoad;
-    } catch (std::exception& e) {
+    } catch (const std::exception& e) {
         mnodemanToLoad.Clear();
         error("%s : Deserialize or I/O error - %s", __func__, e.what());
         return IncorrectFormat;
@@ -217,7 +217,7 @@ bool CMasternodeMan::Add(CMasternode& mn)
     return false;
 }
 
-void CMasternodeMan::AskForMN(CNode* pnode, CTxIn& vin)
+void CMasternodeMan::AskForMN(CNode* pnode, const CTxIn& vin)
 {
     std::map<COutPoint, int64_t>::iterator i = mWeAskedForMasternodeListEntry.find(vin.prevout);
     if (i != mWeAskedForMasternodeListEntry.end()) {
@@ -271,7 +271,7 @@ void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
             }
 
             // allow us to ask for this masternode again if we see another ping
-            map<COutPoint, int64_t>::iterator it2 = mWeAskedForMasternodeListEntry.begin();
+            std::map<COutPoint, int64_t>::iterator it2 = mWeAskedForMasternodeListEntry.begin();
             while (it2 != mWeAskedForMasternodeListEntry.end()) {
                 if ((*it2).first == (*it).vin.prevout) {
                     mWeAskedForMasternodeListEntry.erase(it2++);
@@ -287,7 +287,7 @@ void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
     }
 
     // check who's asked for the Masternode list
-    map<CNetAddr, int64_t>::iterator it1 = mAskedUsForMasternodeList.begin();
+    std::map<CNetAddr, int64_t>::iterator it1 = mAskedUsForMasternodeList.begin();
     while (it1 != mAskedUsForMasternodeList.end()) {
         if ((*it1).second < GetTime()) {
             mAskedUsForMasternodeList.erase(it1++);
@@ -307,7 +307,7 @@ void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
     }
 
     // check which Masternodes we've asked for
-    map<COutPoint, int64_t>::iterator it2 = mWeAskedForMasternodeListEntry.begin();
+    std::map<COutPoint, int64_t>::iterator it2 = mWeAskedForMasternodeListEntry.begin();
     while (it2 != mWeAskedForMasternodeListEntry.end()) {
         if ((*it2).second < GetTime()) {
             mWeAskedForMasternodeListEntry.erase(it2++);
@@ -317,7 +317,7 @@ void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
     }
 
     // remove expired mapSeenMasternodeBroadcast
-    map<uint256, CMasternodeBroadcast>::iterator it3 = mapSeenMasternodeBroadcast.begin();
+    std::map<uint256, CMasternodeBroadcast>::iterator it3 = mapSeenMasternodeBroadcast.begin();
     while (it3 != mapSeenMasternodeBroadcast.end()) {
         if ((*it3).second.lastPing.sigTime < GetTime() - (MASTERNODE_REMOVAL_SECONDS * 2)) {
             mapSeenMasternodeBroadcast.erase(it3++);
@@ -328,7 +328,7 @@ void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
     }
 
     // remove expired mapSeenMasternodePing
-    map<uint256, CMasternodePing>::iterator it4 = mapSeenMasternodePing.begin();
+    std::map<uint256, CMasternodePing>::iterator it4 = mapSeenMasternodePing.begin();
     while (it4 != mapSeenMasternodePing.end()) {
         if ((*it4).second.sigTime < GetTime() - (MASTERNODE_REMOVAL_SECONDS * 2)) {
             mapSeenMasternodePing.erase(it4++);
@@ -492,7 +492,7 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
     LOCK(cs);
 
     CMasternode* pBestMasternode = NULL;
-    std::vector<pair<int64_t, CTxIn> > vecMasternodeLastPaid;
+    std::vector<std::pair<int64_t, CTxIn> > vecMasternodeLastPaid;
 
     /*
         Make a vector with all of the last paid times
@@ -515,7 +515,7 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
         //make sure it has as many confirmations as there are masternodes
         if (mn.GetMasternodeInputAge() < nMnCount) continue;
 
-        vecMasternodeLastPaid.push_back(make_pair(mn.SecondsSincePayment(), mn.vin));
+        vecMasternodeLastPaid.push_back(std::make_pair(mn.SecondsSincePayment(), mn.vin));
     }
 
     nCount = (int)vecMasternodeLastPaid.size();
@@ -524,7 +524,7 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
     if (fFilterSigTime && nCount < nMnCount / 3) return GetNextMasternodeInQueueForPayment(nBlockHeight, false, nCount);
 
     // Sort them high to low
-    sort(vecMasternodeLastPaid.rbegin(), vecMasternodeLastPaid.rend(), CompareLastPaid());
+    std::sort(vecMasternodeLastPaid.rbegin(), vecMasternodeLastPaid.rend(), CompareLastPaid());
 
     uint256 blockHash;
     if(!GetBlockHash(blockHash, nBlockHeight - 101)) {
@@ -625,33 +625,40 @@ int CMasternodeMan::GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, in
     if (!GetBlockHash(blockHash, nBlockHeight)) return -1;
 
     // scan for winner
-    for (CMasternode& mn : vMasternodes) {
-        if (mn.protocolVersion < minProtocol) {
+    const int64_t now = GetTime();
+    for (CMasternode& mn : vMasternodes)
+    {
+        if (mn.protocolVersion < minProtocol)
+        {
             LogPrint("masternode","Skipping Masternode with obsolete version %d\n", mn.protocolVersion);
             continue;                                                       // Skip obsolete versions
         }
 
-        if (IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
-            nMasternode_Age = GetTime() - mn.sigTime;
+        if (IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT))
+        {
+            nMasternode_Age = now - mn.sigTime;
             if ((nMasternode_Age) < nMasternode_Min_Age) {
-                if (fDebug) LogPrint("masternode","Skipping just activated Masternode. Age: %ld\n", nMasternode_Age);
+                if (fDebug) LogPrint("masternode","Skipping just activated Masternode %s. Age: %ld\n", mn.addr.ToString(), nMasternode_Age);
                 continue;                                                   // Skip masternodes younger than (default) 1 hour
             }
         }
-        if (fOnlyActive) {
+        
+        if (fOnlyActive)
+        {
             mn.Check();
             if (!mn.IsEnabled()) continue;
         }
+
         arith_uint256 n = mn.CalculateScore(blockHash);
         int64_t n2 = n.GetCompact(false);
-
-        vecMasternodeScores.push_back(make_pair(n2, mn.vin));
+        vecMasternodeScores.push_back(std::make_pair(n2, mn.vin));
     }
 
-    sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareScoreTxIn());
+    std::sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareScoreTxIn());
 
     int rank = 0;
-    for (std::pair<int64_t, CTxIn>& s : vecMasternodeScores) {
+    for (std::pair<int64_t, CTxIn>& s : vecMasternodeScores)
+    {
         rank++;
         if (s.second.prevout == vin.prevout) {
             return rank;
@@ -677,22 +684,22 @@ std::vector<pair<int, CMasternode> > CMasternodeMan::GetMasternodeRanks(int64_t 
         if (mn.protocolVersion < minProtocol) continue;
 
         if (!mn.IsEnabled()) {
-            vecMasternodeScores.push_back(make_pair(9999, mn));
+            vecMasternodeScores.push_back(std::make_pair(9999, mn));
             continue;
         }
 
         arith_uint256 n = mn.CalculateScore(blockHash);
         int64_t n2 = n.GetCompact(false);
 
-        vecMasternodeScores.push_back(make_pair(n2, mn));
+        vecMasternodeScores.push_back(std::make_pair(n2, mn));
     }
 
-    sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareScoreMN());
+    std::sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareScoreMN());
 
     int rank = 0;
-    for (std::pair<int64_t, CMasternode>& s : vecMasternodeScores) {
+    for (const std::pair<int64_t, CMasternode>& s : vecMasternodeScores) {
         rank++;
-        vecMasternodeRanks.push_back(make_pair(rank, s.second));
+        vecMasternodeRanks.push_back(std::make_pair(rank, s.second));
     }
 
     return vecMasternodeRanks;
@@ -719,10 +726,10 @@ CMasternode* CMasternodeMan::GetMasternodeByRank(int nRank, int64_t nBlockHeight
         arith_uint256 n = mn.CalculateScore(blockHash);
         int64_t n2 = n.GetCompact(false);
 
-        vecMasternodeScores.push_back(make_pair(n2, mn.vin));
+        vecMasternodeScores.push_back(std::make_pair(n2, mn.vin));
     }
 
-    sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareScoreTxIn());
+    std::sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareScoreTxIn());
 
     int rank = 0;
     for (std::pair<int64_t, CTxIn>& s : vecMasternodeScores) {
@@ -766,7 +773,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             masternodeSync.AddedMasternodeList(mnb.GetHash());
             return;
         }
-        mapSeenMasternodeBroadcast.insert(make_pair(mnb.GetHash(), mnb));
+        mapSeenMasternodeBroadcast.insert(std::make_pair(mnb.GetHash(), mnb));
 
         int nDoS = 0;
         if (!mnb.CheckAndUpdate(nDoS)) {
@@ -810,7 +817,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         LogPrint("masternode", "mnp - Masternode ping, vin: %s\n", mnp.vin.prevout.hash.ToString());
 
         if (mapSeenMasternodePing.count(mnp.GetHash())) return; //seen
-        mapSeenMasternodePing.insert(make_pair(mnp.GetHash(), mnp));
+        mapSeenMasternodePing.insert(std::make_pair(mnp.GetHash(), mnp));
 
         int nDoS = 0;
         if (mnp.CheckAndUpdate(nDoS)) return;
@@ -867,7 +874,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                     pfrom->PushInventory(CInv(MSG_MASTERNODE_ANNOUNCE, hash));
                     nInvCount++;
 
-                    if (!mapSeenMasternodeBroadcast.count(hash)) mapSeenMasternodeBroadcast.insert(make_pair(hash, mnb));
+                    if (!mapSeenMasternodeBroadcast.count(hash)) mapSeenMasternodeBroadcast.insert(std::make_pair(hash, mnb));
 
                     if (vin == mn.vin) {
                         LogPrint("masternode", "dseg - Sent 1 Masternode entry to peer %i\n", pfrom->GetId());
@@ -1002,7 +1009,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             LogPrint("masternode", "dsee - already seen this vin %s\n", vin.prevout.ToString());
             return;
         }
-        mapSeenDsee.insert(make_pair(vin.prevout, pubkey));
+        mapSeenDsee.insert(std::make_pair(vin.prevout, pubkey));
         // make sure the vout that was signed is related to the transaction that spawned the Masternode
         //  - this is expensive, so it's only done once per Masternode
         if (!obfuScationSigner.IsVinAssociatedWithPubkey(vin, pubkey)) {
@@ -1166,7 +1173,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
      */
 }
 
-void CMasternodeMan::Remove(CTxIn vin)
+void CMasternodeMan::Remove(const CTxIn& vin)
 {
     LOCK(cs);
 
@@ -1181,7 +1188,7 @@ void CMasternodeMan::Remove(CTxIn vin)
     }
 }
 
-void CMasternodeMan::UpdateMasternodeList(CMasternodeBroadcast mnb)
+void CMasternodeMan::UpdateMasternodeList(CMasternodeBroadcast& mnb)
 {
     LOCK(cs);
     mapSeenMasternodePing.insert(std::make_pair(mnb.lastPing.GetHash(), mnb.lastPing));

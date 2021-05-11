@@ -36,7 +36,7 @@ void SendMoney(const CTxDestination& address, CAmount nValue, CWalletTx& wtxNew,
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
     }
 
-    // Parse SnowGem address
+    // Parse BZEdge address
     CScript scriptPubKey = GetScriptForDestination(address);
 
     // Create and send the transaction
@@ -90,7 +90,7 @@ UniValue obfuscation(const UniValue& params, bool fHelp)
     std::string strAddress = params[0].get_str();
     CTxDestination dest = keyIO.DecodeDestination(strAddress);
     if (!IsValidDestination(dest))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid SnowGem address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid BZEdge address");
 
     // Amount
     CAmount nAmount = AmountFromValue(params[1]);
@@ -114,7 +114,7 @@ UniValue getpoolinfo(const UniValue& params, bool fHelp)
 
             "\nResult:\n"
             "{\n"
-            "  \"current\": \"addr\",    (string) SnowGem address of current masternode\n"
+            "  \"current\": \"addr\",    (string) BZEdge address of current masternode\n"
             "  \"state\": xxxx,        (string) unknown\n"
             "  \"entries\": xxxx,      (numeric) Number of entries\n"
             "  \"accepted\": xxxx,     (numeric) Number of entries accepted\n"
@@ -154,7 +154,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             "    \"txhash\": \"hash\",    (string) Collateral transaction hash\n"
             "    \"outidx\": n,         (numeric) Collateral transaction output index\n"
             "    \"status\": s,         (string) Status (ENABLED/EXPIRED/REMOVE/etc)\n"
-            "    \"addr\": \"addr\",      (string) Masternode SnowGem address\n"
+            "    \"addr\": \"addr\",      (string) Masternode BZEdge address\n"
             "    \"version\": v,        (numeric) Masternode protocol version\n"
             "    \"lastseen\": ttt,     (numeric) The time in seconds since epoch (Jan 1 1970 GMT) of the last seen\n"
             "    \"activetime\": ttt,   (numeric) The time in seconds since epoch (Jan 1 1970 GMT) masternode has been active\n"
@@ -716,7 +716,7 @@ UniValue getmasternodestatus (const UniValue& params, bool fHelp)
             "  \"txhash\": \"xxxx\",      (string) Collateral transaction hash\n"
             "  \"outputidx\": n,        (numeric) Collateral transaction output index number\n"
             "  \"netaddr\": \"xxxx\",     (string) Masternode network address\n"
-            "  \"addr\": \"xxxx\",        (string) SnowGem address for masternode payments\n"
+            "  \"addr\": \"xxxx\",        (string) BZEdge address for masternode payments\n"
             "  \"status\": \"xxxx\",      (string) Masternode status\n"
             "  \"message\": \"xxxx\"      (string) Masternode status message\n"
             "}\n"
@@ -759,7 +759,7 @@ UniValue getmasternodewinners (const UniValue& params, bool fHelp)
             "  {\n"
             "    \"nHeight\": n,           (numeric) block height\n"
             "    \"winner\": {\n"
-            "      \"address\": \"xxxx\",    (string) SnowGem MN Address\n"
+            "      \"address\": \"xxxx\",    (string) BZEdge MN Address\n"
             "      \"nVotes\": n,          (numeric) Number of votes for winner\n"
             "    }\n"
             "  }\n"
@@ -772,7 +772,7 @@ UniValue getmasternodewinners (const UniValue& params, bool fHelp)
             "    \"nHeight\": n,           (numeric) block height\n"
             "    \"winner\": [\n"
             "      {\n"
-            "        \"address\": \"xxxx\",  (string) SnowGem MN Address\n"
+            "        \"address\": \"xxxx\",  (string) BZEdge MN Address\n"
             "        \"nVotes\": n,        (numeric) Number of votes for winner\n"
             "      }\n"
             "      ,...\n"
@@ -840,7 +840,7 @@ UniValue getmasternodewinners (const UniValue& params, bool fHelp)
             obj.pushKV("winner", winner);
         }
 
-            ret.push_back(obj);
+        ret.push_back(obj);
     }
 
     return ret;
@@ -901,7 +901,7 @@ UniValue getmasternodescores (const UniValue& params, bool fHelp)
     return obj;
 }
 
-// This command is retained for backwards compatibility, but is depreciated.
+// This command is retained for backwards compatibility, but is deprecated.
 // Future removal of this command is planned to keep things clean.
 UniValue masternode(const UniValue& params, bool fHelp)
 {

@@ -7,6 +7,8 @@
 #ifndef MASTERNODE_SYNC_H
 #define MASTERNODE_SYNC_H
 
+#include <atomic>
+
 #define MASTERNODE_SYNC_INITIAL 0
 #define MASTERNODE_SYNC_SPORKS 1
 #define MASTERNODE_SYNC_LIST 2
@@ -40,6 +42,9 @@ public:
     int64_t lastFailure;
     int nCountFailures;
 
+    std::atomic<int64_t> lastProcess;
+    std::atomic<bool> fBlockchainSynced;
+
     // sum of all counts
     int sumMasternodeList;
     int sumMasternodeWinner;
@@ -60,9 +65,9 @@ public:
 
     CMasternodeSync();
 
-    void AddedMasternodeList(uint256 hash);
-    void AddedMasternodeWinner(uint256 hash);
-    void AddedBudgetItem(uint256 hash);
+    void AddedMasternodeList(const uint256& hash);
+    void AddedMasternodeWinner(const uint256& hash);
+    void AddedBudgetItem(const uint256& hash);
     void GetNextAsset();
     std::string GetSyncStatus();
     int GetSyncValue();
@@ -72,11 +77,11 @@ public:
 
     void Reset();
     void Process();
-    bool IsFailed() { return RequestedMasternodeAssets == MASTERNODE_SYNC_FAILED; }
-    bool IsBlockchainSynced() { return RequestedMasternodeAssets > MASTERNODE_SYNC_SPORKS; }
-    bool IsMasternodeListSynced() { return RequestedMasternodeAssets > MASTERNODE_SYNC_LIST; }
-    bool IsWinnersListSynced() { return RequestedMasternodeAssets > MASTERNODE_SYNC_MNW; }
-    bool IsSynced() { return RequestedMasternodeAssets == MASTERNODE_SYNC_FINISHED; }
+    bool IsFailed();
+    bool IsBlockchainSynced();
+    bool IsMasternodeListSynced();
+    bool IsWinnersListSynced();
+    bool IsSynced();
     void ClearFulfilledRequest();
 };
 

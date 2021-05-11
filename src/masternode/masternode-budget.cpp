@@ -54,7 +54,7 @@ bool IsBudgetCollateralValid(uint256 nTxCollateralHash, uint256 nExpectedHash, s
     findScript << OP_RETURN << ToByteVector(nExpectedHash);
 
     bool foundOpReturn = false;
-    for (const CTxOut o : txCollateral.vout)
+    for (const CTxOut& o : txCollateral.vout)
     {
         if (!o.scriptPubKey.IsNormalPaymentScript() && !o.scriptPubKey.IsUnspendable()) {
             strError = strprintf("Invalid Script %s", txCollateral.ToString());
@@ -159,11 +159,12 @@ void CBudgetManager::SubmitFinalBudget()
     std::string strBudgetName = "main";
     std::vector<CTxBudgetPayment> vecTxBudgetPayments;
 
-    for (unsigned int i = 0; i < vBudgetProposals.size(); i++) {
+    for (const auto bp : vBudgetProposals)
+    {
         CTxBudgetPayment txBudgetPayment;
-        txBudgetPayment.nProposalHash = vBudgetProposals[i]->GetHash();
-        txBudgetPayment.payee = vBudgetProposals[i]->GetPayee();
-        txBudgetPayment.nAmount = vBudgetProposals[i]->GetAllotted();
+        txBudgetPayment.nProposalHash = bp->GetHash();
+        txBudgetPayment.payee = bp->GetPayee();
+        txBudgetPayment.nAmount = bp->GetAllotted();
         vecTxBudgetPayments.push_back(txBudgetPayment);
     }
 
@@ -1767,7 +1768,6 @@ void CFinalizedBudget::AutoCheck()
     {
         std::vector<CBudgetProposal*> vBudgetProposals = budget.GetBudget();
 
-
         for (unsigned int i = 0; i < vecBudgetPayments.size(); i++) {
             LogPrint("masternode","CFinalizedBudget::AutoCheck - nProp %d %s\n", i, vecBudgetPayments[i].nProposalHash.ToString());
             LogPrint("masternode","CFinalizedBudget::AutoCheck - Payee %d %s\n", i, vecBudgetPayments[i].payee.ToString());
@@ -1822,11 +1822,9 @@ void CFinalizedBudget::AutoCheck()
 // If masternode voted for a proposal, but is now invalid -- remove the vote
 void CFinalizedBudget::CleanAndRemove(bool fSignatureCheck)
 {
-    std::map<uint256, CFinalizedBudgetVote>::iterator it = mapVotes.begin();
-
-    while (it != mapVotes.end()) {
-        (*it).second.fValid = (*it).second.SignatureValid(fSignatureCheck);
-        ++it;
+    for (auto& vote : mapVotes)
+    {
+        vote.second.fValid = vote.second.SignatureValid(fSignatureCheck);
     }
 }
 
@@ -1835,8 +1833,9 @@ CAmount CFinalizedBudget::GetTotalPayout()
 {
     CAmount ret = 0;
 
-    for (unsigned int i = 0; i < vecBudgetPayments.size(); i++) {
-        ret += vecBudgetPayments[i].nAmount;
+    for (const auto& bp : vecBudgetPayments)
+    {
+        ret += bp.nAmount;
     }
 
     return ret;
@@ -1847,7 +1846,7 @@ std::string CFinalizedBudget::GetProposals()
     LOCK(cs);
     std::string ret = "";
 
-    for (CTxBudgetPayment& budgetPayment : vecBudgetPayments)
+    for (const CTxBudgetPayment& budgetPayment : vecBudgetPayments)
     {
         CBudgetProposal* pbudgetProposal = budget.FindProposal(budgetPayment.nProposalHash);
 
@@ -1975,7 +1974,7 @@ bool CFinalizedBudget::IsTransactionValid(const CTransaction& txNew, int nBlockH
     }
 
     bool found = false;
-    for (CTxOut out : txNew.vout)
+    for (const CTxOut& out : txNew.vout)
     {
         if (vecBudgetPayments[nCurrentBudgetPayment].payee == out.scriptPubKey && vecBudgetPayments[nCurrentBudgetPayment].nAmount == out.nValue) {
             found = true;
@@ -2037,7 +2036,7 @@ CFinalizedBudgetBroadcast::CFinalizedBudgetBroadcast(const CFinalizedBudget& oth
 {
     strBudgetName = other.strBudgetName;
     nBlockStart = other.nBlockStart;
-    for (CTxBudgetPayment out : other.vecBudgetPayments)
+    for (const CTxBudgetPayment& out : other.vecBudgetPayments)
     {
         vecBudgetPayments.push_back(out);        
     }
@@ -2049,7 +2048,7 @@ CFinalizedBudgetBroadcast::CFinalizedBudgetBroadcast(std::string strBudgetNameIn
 {
     strBudgetName = strBudgetNameIn;
     nBlockStart = nBlockStartIn;
-    for (CTxBudgetPayment out : vecBudgetPaymentsIn)
+    for (const CTxBudgetPayment& out : vecBudgetPaymentsIn)
     {
         vecBudgetPayments.push_back(out);
     }

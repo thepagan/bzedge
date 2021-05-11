@@ -480,8 +480,8 @@ std::string HelpMessage(HelpMessageMode mode)
         strUsage += HelpMessageOpt("-nuparams=hexBranchId:activationHeight", "Use given activation height for specified network upgrade (regtest-only)");
         strUsage += HelpMessageOpt("-nurejectoldversions", strprintf("Reject peers that don't know about the current epoch (regtest-only) (default: %u)", DEFAULT_NU_REJECT_OLD_VERSIONS));
     }
-    std::string debugCategories = "addrman, alert, bench, coindb, db, estimatefee, http, libevent, lock, mempool, net, masternode, partitioncheck, pow, proxy, prune, "
-                             "rand, receiveunsafe, reindex, rpc, selectcoins, tor, zmq, zrpc, zrpcunsafe (implies zrpc)"; // Don't translate these
+    std::string debugCategories = "addrman, alert, bench, coindb, db, estimatefee, http, libevent, lock, mempool, net, masternode, obfuscation, partitioncheck, paymentdisclosure, pow, proxy, prune, "
+                             "rand, receiveunsafe, reindex, rpc, selectcoins, swiftx, tor, zmq, zrpc, zrpcunsafe (implies zrpc)"; // Don't translate these
     strUsage += HelpMessageOpt("-debug=<category>", strprintf(_("Output debugging information (default: %u, supplying <category> is optional)"), 0) + ". " +
         _("If <category> is not supplied or if <category> = 1, output all debugging information.") + " " + _("<category> can be:") + " " + debugCategories + ". " +
         _("For multiple specific categories use -debug=<category> multiple times."));
@@ -1061,6 +1061,18 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         }
     }
 
+    if (fDebug)
+    {
+        for (const std::string& dc : categories)
+        {
+            LogPrintf("Debug log enabled for category \"%s\"\n", dc);
+        }
+    }
+    else
+    {
+        LogPrintf("Debug log disabled.\n");
+    }
+
     // Check for -debugnet
     if (GetBoolArg("-debugnet", false))
         InitWarning(_("Unsupported argument -debugnet ignored, use -debug=net."));
@@ -1537,7 +1549,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                         CleanupBlockRevFiles();
                 }
 
-				// SnowGem: load previous sessions sporks if we have them.
+				// Load previous sessions sporks if we have them.
                 // uiInterface.InitMessage(_("Loading sporks..."));
                 LoadSporksFromDB();
 

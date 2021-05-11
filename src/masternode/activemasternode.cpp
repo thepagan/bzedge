@@ -13,7 +13,7 @@
 #include "masternode/spork.h"
 
 //
-// Bootup the Masternode, look for a 1000 SnowGem input and register on the network
+// Bootup the Masternode, look for a 250k BZE input and register on the network
 //
 void CActiveMasternode::ManageStatus()
 {

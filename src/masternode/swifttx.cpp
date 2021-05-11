@@ -59,7 +59,7 @@ void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& v
             return;
         }
 
-        for (const CTxOut o : tx.vout)
+        for (const CTxOut& o : tx.vout)
         {
             // IX supports normal scripts and unspendable scripts (used in DS collateral and Budget collateral).
             // TODO: Look into other script types that are normal and can be included
@@ -84,7 +84,7 @@ void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& v
 
             DoConsensusVote(tx, nBlockHeight);
 
-            mapTxLockReq.insert(make_pair(tx.GetHash(), tx));
+            mapTxLockReq.insert(std::make_pair(tx.GetHash(), tx));
 
             LogPrintf("ProcessMessageSwiftTX::ix - Transaction Lock Request: %s %s : accepted %s\n",
                 pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str(),
@@ -118,7 +118,7 @@ void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& v
 
                         //reprocess the last 15 blocks
                         ReprocessBlocks(15);
-                        mapTxLockReq.insert(make_pair(tx.GetHash(), tx));
+                        mapTxLockReq.insert(std::make_pair(tx.GetHash(), tx));
                     }
                 }
             }
@@ -137,7 +137,7 @@ void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& v
             return;
         }
 
-        mapTxLockVote.insert(make_pair(ctx.GetHash(), ctx));
+        mapTxLockVote.insert(std::make_pair(ctx.GetHash(), ctx));
 
         if (ProcessConsensusVote(pfrom, ctx)) {
             //Spam/Dos protection
@@ -171,18 +171,18 @@ void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& v
 bool IsIXTXValid(const CTransaction& txCollateral)
 {
     if (txCollateral.vout.size() < 1) return false;
-    if (txCollateral.nLockTime >  (unsigned int)chainActive.Height()) return false;
+    if (txCollateral.nLockTime > (unsigned int)chainActive.Height()) return false;
 
     CAmount nValueIn = 0;
     CAmount nValueOut = 0;
     bool missingTx = false;
 
-    for (const CTxOut o : txCollateral.vout)
+    for (const CTxOut& o : txCollateral.vout)
     {
         nValueOut += o.nValue;
     }
 
-    for (const CTxIn i : txCollateral.vin)
+    for (const CTxIn& i : txCollateral.vin)
     {
         CTransaction tx2;
         uint256 hash;
@@ -457,7 +457,7 @@ void CleanTransactionLocksList()
                 mapTxLockReq.erase(it->second.txHash);
                 mapTxLockReqRejected.erase(it->second.txHash);
 
-                for (CConsensusVote& v : it->second.vecConsensusVotes)
+                for (const CConsensusVote& v : it->second.vecConsensusVotes)
                 {
                     mapTxLockVote.erase(v.GetHash());                    
                 }
@@ -529,7 +529,7 @@ bool CConsensusVote::Sign()
 
 bool CTransactionLock::SignaturesValid()
 {
-    for (CConsensusVote vote : vecConsensusVotes)
+    for (CConsensusVote& vote : vecConsensusVotes)
     {
         int n = mnodeman.GetMasternodeRank(vote.vinMasternode, vote.nBlockHeight, MIN_SWIFTTX_PROTO_VERSION);
 

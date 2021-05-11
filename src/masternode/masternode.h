@@ -28,9 +28,9 @@ using namespace std;
 class CMasternode;
 class CMasternodeBroadcast;
 class CMasternodePing;
-extern map<int64_t, uint256> mapCacheBlockHashes;
+extern std::map<int64_t, uint256> mapCacheBlockHashes;
 
-bool GetBlockHash(uint256& hash, int nBlockHeight);
+bool GetBlockHash(uint256& hash, const int nBlockHeight);
 
 
 //
@@ -90,10 +90,12 @@ public:
         swap(*this, from);
         return *this;
     }
+
     friend bool operator==(const CMasternodePing& a, const CMasternodePing& b)
     {
         return a.vin == b.vin && a.blockHash == b.blockHash;
     }
+
     friend bool operator!=(const CMasternodePing& a, const CMasternodePing& b)
     {
         return !(a == b);
@@ -101,7 +103,7 @@ public:
 };
 
 //
-// The Masternode Class. For managing the Obfuscation process. It contains the input of the 1000 XSG, signature to prove
+// The Masternode Class. For managing the Obfuscation process. It contains the input of the 250k BZE, signature to prove
 // it's the one who own that ip address and code for calculating the payment election.
 //
 class CMasternode
@@ -154,6 +156,8 @@ public:
 
     void swap(CMasternode& first, CMasternode& second) // nothrow
     {
+        LOCK(cs);
+
         // enable ADL (not necessary in our case, but good practice)
         using std::swap;
 
@@ -227,29 +231,33 @@ public:
 
     bool IsBroadcastedWithin(int seconds)
     {
+        LOCK(cs);
         return (GetTime() - sigTime) < seconds;
     }
 
     bool IsPingedWithin(int seconds, int64_t now = -1)
     {
-        now == -1 ? now = GetTime() : now;
-
-        return (lastPing == CMasternodePing()) ? false : now - lastPing.sigTime < seconds;
+        LOCK(cs);
+        return (lastPing == CMasternodePing()) ? false : ((now == -1 ? GetTime() : now) - lastPing.sigTime) < seconds;
     }
 
     void Disable()
     {
+        LOCK(cs);
         sigTime = 0;
         lastPing = CMasternodePing();
     }
 
     bool IsEnabled()
     {
+        LOCK(cs);
         return activeState == MASTERNODE_ENABLED;
     }
 
     int GetMasternodeInputAge()
     {
+        LOCK2(cs_main, cs);
+        
         if (chainActive.Tip() == NULL) return 0;
 
         if (cacheInputAge == 0) {
@@ -264,15 +272,16 @@ public:
 
     std::string Status()
     {
-        std::string strStatus = "ACTIVE";
-
-        if (activeState == CMasternode::MASTERNODE_ENABLED) strStatus = "ENABLED";
-        if (activeState == CMasternode::MASTERNODE_EXPIRED) strStatus = "EXPIRED";
-        if (activeState == CMasternode::MASTERNODE_VIN_SPENT) strStatus = "VIN_SPENT";
-        if (activeState == CMasternode::MASTERNODE_REMOVE) strStatus = "REMOVE";
-        if (activeState == CMasternode::MASTERNODE_POS_ERROR) strStatus = "POS_ERROR";
-
-        return strStatus;
+        LOCK(cs);
+        switch (activeState)
+        {
+            case CMasternode::MASTERNODE_ENABLED : return "ENABLED";
+            case CMasternode::MASTERNODE_EXPIRED : return "EXPIRED";
+            case CMasternode::MASTERNODE_VIN_SPENT : return "VIN_SPENT";
+            case CMasternode::MASTERNODE_REMOVE : return "REMOVE";
+            case CMasternode::MASTERNODE_POS_ERROR : return "POS_ERROR";
+            default: return "ACTIVE";
+        }
     }
 
     int64_t GetLastPaid();

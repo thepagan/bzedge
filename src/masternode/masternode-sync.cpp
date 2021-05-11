@@ -25,9 +25,70 @@ CMasternodeSync::CMasternodeSync()
     Reset();
 }
 
+bool CMasternodeSync::IsFailed()
+{
+    return RequestedMasternodeAssets == MASTERNODE_SYNC_FAILED;
+}
+
+// previous unreliable IsBlockchainSynced()
+/*
+bool CMasternodeSync::IsBlockchainSynced()
+{
+    return RequestedMasternodeAssets > MASTERNODE_SYNC_SPORKS;
+}
+*/
+
+bool CMasternodeSync::IsBlockchainSynced()
+{
+    int64_t now = GetTime();
+
+    // if the last call to this function was more than 60 minutes ago (client was in sleep mode) reset the sync process
+    if (now > lastProcess + 60 * 60) {
+        Reset();
+        fBlockchainSynced = false;
+    }
+    lastProcess = now;
+
+    if (fBlockchainSynced) return true;
+
+    if (fImporting || fReindex) return false;
+
+    int64_t blockTime = 0;
+    {
+        TRY_LOCK(cs_main, lockMain);
+        if (!lockMain) return false;
+        CBlockIndex *pindex = chainActive.Tip();
+        if (pindex == nullptr) return false;
+        blockTime = pindex->nTime;
+    }
+
+    if (blockTime + 60 * 60 < lastProcess)
+        return false;
+
+    fBlockchainSynced = true;
+
+    return true;
+}
+
+bool CMasternodeSync::IsMasternodeListSynced()
+{
+    return RequestedMasternodeAssets > MASTERNODE_SYNC_LIST;
+}
+
+bool CMasternodeSync::IsWinnersListSynced()
+{
+    return RequestedMasternodeAssets > MASTERNODE_SYNC_MNW;
+}
+
+bool CMasternodeSync::IsSynced()
+{
+    return RequestedMasternodeAssets == MASTERNODE_SYNC_FINISHED;
+}
 
 void CMasternodeSync::Reset()
 {
+    fBlockchainSynced = false;
+    lastProcess = 0;
     lastMasternodeList = 0;
     lastMasternodeWinner = 0;
     lastBudgetItem = 0;
@@ -49,7 +110,7 @@ void CMasternodeSync::Reset()
     nAssetSyncStarted = GetTime();
 }
 
-void CMasternodeSync::AddedMasternodeList(uint256 hash)
+void CMasternodeSync::AddedMasternodeList(const uint256& hash)
 {
     if (mnodeman.mapSeenMasternodeBroadcast.count(hash)) {
         if (mapSeenSyncMNB[hash] < MASTERNODE_SYNC_THRESHOLD) {
@@ -58,11 +119,11 @@ void CMasternodeSync::AddedMasternodeList(uint256 hash)
         }
     } else {
         lastMasternodeList = GetTime();
-        mapSeenSyncMNB.insert(make_pair(hash, 1));
+        mapSeenSyncMNB.insert(std::make_pair(hash, 1));
     }
 }
 
-void CMasternodeSync::AddedMasternodeWinner(uint256 hash)
+void CMasternodeSync::AddedMasternodeWinner(const uint256& hash)
 {
     if (masternodePayments.mapMasternodePayeeVotes.count(hash)) {
         if (mapSeenSyncMNW[hash] < MASTERNODE_SYNC_THRESHOLD) {
@@ -71,11 +132,11 @@ void CMasternodeSync::AddedMasternodeWinner(uint256 hash)
         }
     } else {
         lastMasternodeWinner = GetTime();
-        mapSeenSyncMNW.insert(make_pair(hash, 1));
+        mapSeenSyncMNW.insert(std::make_pair(hash, 1));
     }
 }
 
-void CMasternodeSync::AddedBudgetItem(uint256 hash)
+void CMasternodeSync::AddedBudgetItem(const uint256& hash)
 {
     if (budget.mapSeenMasternodeBudgetProposals.count(hash) || budget.mapSeenMasternodeBudgetVotes.count(hash) ||
         budget.mapSeenFinalizedBudgets.count(hash) || budget.mapSeenFinalizedBudgetVotes.count(hash)) {
@@ -85,7 +146,7 @@ void CMasternodeSync::AddedBudgetItem(uint256 hash)
         }
     } else {
         lastBudgetItem = GetTime();
-        mapSeenSyncBudget.insert(make_pair(hash, 1));
+        mapSeenSyncBudget.insert(std::make_pair(hash, 1));
     }
 }
 

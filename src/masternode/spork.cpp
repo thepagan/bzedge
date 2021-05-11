@@ -27,7 +27,7 @@ CSporkManager sporkManager;
 std::map<uint256, CSporkMessage> mapSporks;
 std::map<int, CSporkMessage> mapSporksActive;
 
-// SnowGem: on startup load spork values from previous session if they exist in the sporkDB
+// Load spork values from previous session on startup if they exist in the sporkDB
 void LoadSporksFromDB()
 {
     for (int i = SPORK_START; i <= SPORK_END; ++i) {
@@ -96,7 +96,7 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
         mapSporksActive[spork.nSporkID] = spork;
         sporkManager.Relay(spork);
 
-        // SnowGem: add to spork database.
+        // Add to spork database.
         pSporkDB->WriteSpork(spork.nSporkID, spork);
     }
     if (strCommand == "getsporks") {
@@ -113,25 +113,24 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 // grab the value of the spork on the network, or the default
 int64_t GetSporkValue(int nSporkID)
 {
-    int64_t r = -1;
-
-    if (mapSporksActive.count(nSporkID)) {
-        r = mapSporksActive[nSporkID].nValue;
-    } else {
-        if (nSporkID == SPORK_2_SWIFTTX) r = SPORK_2_SWIFTTX_DEFAULT;
-        if (nSporkID == SPORK_3_SWIFTTX_BLOCK_FILTERING) r = SPORK_3_SWIFTTX_BLOCK_FILTERING_DEFAULT;
-        if (nSporkID == SPORK_5_MAX_VALUE) r = SPORK_5_MAX_VALUE_DEFAULT;
-        if (nSporkID == SPORK_7_MASTERNODE_SCANNING) r = SPORK_7_MASTERNODE_SCANNING_DEFAULT;
-        if (nSporkID == SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT) r = SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT_DEFAULT;
-        if (nSporkID == SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT) r = SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT_DEFAULT;
-        if (nSporkID == SPORK_10_MASTERNODE_PAY_UPDATED_NODES) r = SPORK_10_MASTERNODE_PAY_UPDATED_NODES_DEFAULT;
-        if (nSporkID == SPORK_11_LOCK_INVALID_UTXO) r = SPORK_11_LOCK_INVALID_UTXO_DEFAULT;
-        if (nSporkID == SPORK_13_ENABLE_SUPERBLOCKS) r = SPORK_13_ENABLE_SUPERBLOCKS_DEFAULT;
-
-        if (r == -1) LogPrintf("GetSpork::Unknown Spork %d\n", nSporkID);
+    if (mapSporksActive.count(nSporkID))
+    {
+        return mapSporksActive[nSporkID].nValue; 
     }
 
-    return r;
+    switch (nSporkID)
+    {
+        case SPORK_2_SWIFTTX : return SPORK_2_SWIFTTX_DEFAULT;
+        case SPORK_3_SWIFTTX_BLOCK_FILTERING : return SPORK_3_SWIFTTX_BLOCK_FILTERING_DEFAULT;
+        case SPORK_5_MAX_VALUE : return SPORK_5_MAX_VALUE_DEFAULT;
+        case SPORK_7_MASTERNODE_SCANNING : return SPORK_7_MASTERNODE_SCANNING_DEFAULT;
+        case SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT : return SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT_DEFAULT;
+        case SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT : return SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT_DEFAULT;
+        case SPORK_10_MASTERNODE_PAY_UPDATED_NODES : return SPORK_10_MASTERNODE_PAY_UPDATED_NODES_DEFAULT;
+        case SPORK_11_LOCK_INVALID_UTXO : return SPORK_11_LOCK_INVALID_UTXO_DEFAULT;
+        case SPORK_13_ENABLE_SUPERBLOCKS : return SPORK_13_ENABLE_SUPERBLOCKS_DEFAULT;
+        default : LogPrintf("GetSpork::Unknown Spork %d\n", nSporkID); return -1;
+    }
 }
 
 // grab the spork value, and see if it's off
@@ -142,25 +141,24 @@ bool IsSporkActive(int nSporkID)
     return r < GetTime();
 }
 
-
 void ReprocessBlocks(int nBlocks)
 {
-    std::map<uint256, int64_t>::iterator it = mapRejectedBlocks.begin();
-    while (it != mapRejectedBlocks.end()) {
+    for (const auto& bt : mapRejectedBlocks)
+    {
         //use a window twice as large as is usual for the nBlocks we want to reset
-        if ((*it).second > GetTime() - (nBlocks * 60 * 5)) {
-            BlockMap::iterator mi = mapBlockIndex.find((*it).first);
-            if (mi != mapBlockIndex.end() && (*mi).second) {
+        if (bt.second > GetTime() - (nBlocks * 60 * 5)) {
+            BlockMap::iterator mi = mapBlockIndex.find(bt.first);
+            if (mi != mapBlockIndex.end() && (*mi).second)
+            {
                 LOCK(cs_main);
 
                 CBlockIndex* pindex = (*mi).second;
-                LogPrintf("ReprocessBlocks - %s\n", (*it).first.ToString());
+                LogPrintf("ReprocessBlocks - %s\n", bt.first.ToString());
 
                 CValidationState state;
                 ReconsiderBlock(state, pindex);
             }
         }
-        ++it;
     }
 
     CValidationState state;
@@ -180,11 +178,7 @@ bool CSporkManager::CheckSignature(CSporkMessage& spork)
     std::string strMessage = boost::lexical_cast<std::string>(spork.nSporkID) + boost::lexical_cast<std::string>(spork.nValue) + boost::lexical_cast<std::string>(spork.nTimeSigned);
     CPubKey pubkeynew(ParseHex(Params().SporkKey()));
     std::string errorMessage = "";
-    if (obfuScationSigner.VerifyMessage(pubkeynew, spork.vchSig, strMessage, errorMessage)) {
-        return true;
-    }
-
-    return false;
+    return obfuScationSigner.VerifyMessage(pubkeynew, spork.vchSig, strMessage, errorMessage);
 }
 
 bool CSporkManager::Sign(CSporkMessage& spork)
@@ -270,15 +264,17 @@ int CSporkManager::GetSporkIDByName(std::string strName)
 
 std::string CSporkManager::GetSporkNameByID(int id)
 {
-    if (id == SPORK_2_SWIFTTX) return "SPORK_2_SWIFTTX";
-    if (id == SPORK_3_SWIFTTX_BLOCK_FILTERING) return "SPORK_3_SWIFTTX_BLOCK_FILTERING";
-    if (id == SPORK_5_MAX_VALUE) return "SPORK_5_MAX_VALUE";
-    if (id == SPORK_7_MASTERNODE_SCANNING) return "SPORK_7_MASTERNODE_SCANNING";
-    if (id == SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT) return "SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT";
-    if (id == SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT) return "SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT";
-    if (id == SPORK_10_MASTERNODE_PAY_UPDATED_NODES) return "SPORK_10_MASTERNODE_PAY_UPDATED_NODES";
-    if (id == SPORK_11_LOCK_INVALID_UTXO) return "SPORK_11_LOCK_INVALID_UTXO";
-    if (id == SPORK_13_ENABLE_SUPERBLOCKS) return "SPORK_13_ENABLE_SUPERBLOCKS";
-
-    return "Unknown";
+    switch (id)
+    {
+        case SPORK_2_SWIFTTX : return "SPORK_2_SWIFTTX";
+        case SPORK_3_SWIFTTX_BLOCK_FILTERING : return "SPORK_3_SWIFTTX_BLOCK_FILTERING";
+        case SPORK_5_MAX_VALUE : return "SPORK_5_MAX_VALUE";
+        case SPORK_7_MASTERNODE_SCANNING : return "SPORK_7_MASTERNODE_SCANNING";
+        case SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT : return "SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT";
+        case SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT : return "SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT";
+        case SPORK_10_MASTERNODE_PAY_UPDATED_NODES : return "SPORK_10_MASTERNODE_PAY_UPDATED_NODES";
+        case SPORK_11_LOCK_INVALID_UTXO : return "SPORK_11_LOCK_INVALID_UTXO";
+        case SPORK_13_ENABLE_SUPERBLOCKS : return "SPORK_13_ENABLE_SUPERBLOCKS";
+        default: return "Unknown";
+    }
 }

@@ -534,7 +534,7 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
 	// //require at least 6 signatures
     if (Params().GetConsensus().NetworkUpgradeActive(nBlockHeight, Consensus::UPGRADE_BZSHARES)) {
         
-        for (CMasternodePayee& payee : vecPayments)
+        for (const CMasternodePayee& payee : vecPayments)
         {
             LogPrint("masternode","Masternode payment nVotes=%d nMaxSignatures=%d\n", payee.nVotes, nMaxSignatures);
             if (payee.nVotes >= nMaxSignatures && payee.nVotes >= MNPAYMENTS_SIGNATURES_REQUIRED)
@@ -545,10 +545,10 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
         if (nMaxSignatures < MNPAYMENTS_SIGNATURES_REQUIRED) return true;
     }	
 
-    for (CMasternodePayee& payee : vecPayments)
+    for (const CMasternodePayee& payee : vecPayments)
     {
         bool found = false;
-        for (CTxOut out : txNew.vout)
+        for (const CTxOut& out : txNew.vout)
         {
             if (payee.scriptPubKey == out.scriptPubKey) {
                 LogPrint("masternode","Masternode payment Paid=%s Min=%s\n", FormatMoney(out.nValue).c_str(), FormatMoney(requiredMasternodePayment).c_str());
@@ -590,7 +590,7 @@ std::string CMasternodeBlockPayees::GetRequiredPaymentsString()
 
     KeyIO keyIO(Params());
 
-    for (CMasternodePayee& payee : vecPayments)
+    for (const CMasternodePayee& payee : vecPayments)
     {
         CTxDestination address1;
         ExtractDestination(payee.scriptPubKey, address1);

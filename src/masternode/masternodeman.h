@@ -69,9 +69,9 @@ private:
 
 public:
     // Keep track of all broadcasts I've seen
-    map<uint256, CMasternodeBroadcast> mapSeenMasternodeBroadcast;
+    std::map<uint256, CMasternodeBroadcast> mapSeenMasternodeBroadcast;
     // Keep track of all pings I've seen
-    map<uint256, CMasternodePing> mapSeenMasternodePing;
+    std::map<uint256, CMasternodePing> mapSeenMasternodePing;
 
     // keep track of dsq count to prevent masternodes from gaming obfuscation queue
     int64_t nDsqCount;
@@ -99,7 +99,7 @@ public:
     bool Add(CMasternode& mn);
 
     /// Ask (source) node for mnb
-    void AskForMN(CNode* pnode, CTxIn& vin);
+    void AskForMN(CNode* pnode, const CTxIn& vin);
 
     /// Check all Masternodes
     void Check();
@@ -137,7 +137,7 @@ public:
         return vMasternodes;
     }
 
-    std::vector<pair<int, CMasternode> > GetMasternodeRanks(int64_t nBlockHeight, int minProtocol = 0);
+    std::vector<std::pair<int, CMasternode> > GetMasternodeRanks(int64_t nBlockHeight, int minProtocol = 0);
     int GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, int minProtocol = 0, bool fOnlyActive = true);
     CMasternode* GetMasternodeByRank(int nRank, int64_t nBlockHeight, int minProtocol = 0, bool fOnlyActive = true);
 
@@ -153,10 +153,10 @@ public:
 
     std::string ToString() const;
 
-    void Remove(CTxIn vin);
+    void Remove(const CTxIn& vin);
 
     /// Update masternode list and maps using provided CMasternodeBroadcast
-    void UpdateMasternodeList(CMasternodeBroadcast mnb);
+    void UpdateMasternodeList(CMasternodeBroadcast& mnb);
 
     bool HasEnabledMasternode(int protocolVersion = -1);
 };
