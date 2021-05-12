@@ -4852,7 +4852,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
         }
         CheckBlockIndex(chainparams.GetConsensus());
         if (!ret)
-            return error("%s: AcceptBlock FAILED", __func__);
+            return error("%s: AcceptBlock from %s FAILED", __func__, pfrom->addr.ToString());
     }
 
     if (!ActivateBestChain(state, chainparams, pblock))
