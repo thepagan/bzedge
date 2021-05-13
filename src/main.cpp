@@ -867,7 +867,7 @@ bool ContextualCheckTransaction(
             int expiredDosLevel = IsExpiredTx(tx, nHeight - 1) ? dosLevelConstricting : 0;
             return state.DoS(
                     expiredDosLevel,
-                    error("ContextualCheckTransaction(): transaction is expired. Resending when caught up with the blockchain, or manually setting the zcashd txexpirydelta parameter may help."),
+                    error("ContextualCheckTransaction(): transaction %s is expired. Resending when caught up with the blockchain, or manually setting the bzedged txexpirydelta parameter may help.", tx.GetHash().ToString()),
                     REJECT_INVALID, "tx-overwinter-expired");
         }
 
@@ -1531,7 +1531,7 @@ bool AcceptToMemoryPool(const CChainParams& chainparams,CTxMemPool& pool, CValid
     // Note that if a valid transaction belonging to the wallet is in the mempool and the node is shutdown,
     // upon restart, CWalletTx::AcceptToMemoryPool() will be invoked which might result in rejection.
     if (IsExpiringSoonTx(tx, nextBlockHeight)) {
-        return state.DoS(0, error("AcceptToMemoryPool(): transaction is expiring soon"), REJECT_INVALID, "tx-expiring-soon");
+        return state.DoS(0, error("AcceptToMemoryPool(): transaction is expiring soon (txid=%s)", tx.GetHash().ToString()), REJECT_INVALID, "tx-expiring-soon");
     }
 
     // Coinbase is only valid in a block, not as a loose transaction
@@ -1605,7 +1605,7 @@ bool AcceptToMemoryPool(const CChainParams& chainparams,CTxMemPool& pool, CValid
 
         // are the actual inputs available?
         if (!view.HaveInputs(tx))
-            return state.Invalid(error("AcceptToMemoryPool: inputs already spent"),
+            return state.Invalid(error("AcceptToMemoryPool: inputs already spent (txid=%s)", tx.GetHash().ToString()),
                                  REJECT_DUPLICATE, "bad-txns-inputs-spent");
 
         // Are the shielded spends' requirements met?
@@ -7296,15 +7296,45 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
     }
     else
     {
-        if (chainparams.GetConsensus().NetworkUpgradeActive(chainActive.Tip()->nHeight, Consensus::UPGRADE_BZSHARES))
+        // don't allow to get spammed during imporing, reindexing or IBD
+        if (!fReindex && !fImporting && !IsInitialBlockDownload(Consensus::Params()))
         {
-            obfuScationPool.ProcessMessageObfuscation(pfrom, strCommand, vRecv);
-            mnodeman.ProcessMessage(pfrom, strCommand, vRecv);
-            budget.ProcessMessage(pfrom, strCommand, vRecv);
-            masternodePayments.ProcessMessageMasternodePayments(pfrom, strCommand, vRecv);
-            ProcessMessageSwiftTX(pfrom, strCommand, vRecv);
-            ProcessSpork(pfrom, strCommand, vRecv);    
-            masternodeSync.ProcessMessage(pfrom, strCommand, vRecv);
+            // non-standard messages handling
+            if (chainparams.GetConsensus().NetworkUpgradeActive(chainActive.Tip()->nHeight, Consensus::UPGRADE_BZSHARES))
+            {
+                if (strCommand == "dseep" || strCommand == "mnb" || strCommand == "mnp" || strCommand == "dseg" || strCommand == "dsee")
+                {
+                    mnodeman.ProcessMessage(pfrom, strCommand, vRecv);
+                }
+                else if (strCommand == "mnw" || strCommand == "mnget")
+                {
+                    masternodePayments.ProcessMessageMasternodePayments(pfrom, strCommand, vRecv);
+                }
+                else if (strCommand == "ssc")
+                {
+                    masternodeSync.ProcessMessage(pfrom, strCommand, vRecv);
+                }
+                else if (strCommand == "spork" || strCommand == "getsporks")
+                {
+                ProcessSpork(pfrom, strCommand, vRecv); 
+                }
+                else if (strCommand == "ix" || strCommand == "txlvote")
+                {
+                    ProcessMessageSwiftTX(pfrom, strCommand, vRecv);
+                }
+                else if (strCommand == "mnvs" || strCommand == "mprop" || strCommand == "mvote" || strCommand == "fbs" || strCommand == "fbvote")
+                {
+                    budget.ProcessMessage(pfrom, strCommand, vRecv);
+                }
+                else if (strCommand == "dsa" || strCommand == "dsq" || strCommand == "dss" || strCommand == "dsc" || strCommand == "dssu" || strCommand == "dsi" || strCommand == "dsf")
+                {
+                    obfuScationPool.ProcessMessageObfuscation(pfrom, strCommand, vRecv);
+                }
+                else
+                {
+                    LogPrintf("ProcessMessage(): Unknown strCommand \"%s\" from peer=%d\n", SanitizeString(strCommand), pfrom->addr.ToString());
+                }
+            }
         }
     }
 
