@@ -25,11 +25,6 @@ CMasternodeSync::CMasternodeSync()
     Reset();
 }
 
-bool CMasternodeSync::IsFailed()
-{
-    return RequestedMasternodeAssets == MASTERNODE_SYNC_FAILED;
-}
-
 // previous unreliable IsBlockchainSynced()
 /*
 bool CMasternodeSync::IsBlockchainSynced()
@@ -68,21 +63,6 @@ bool CMasternodeSync::IsBlockchainSynced()
     fBlockchainSynced = true;
 
     return true;
-}
-
-bool CMasternodeSync::IsMasternodeListSynced()
-{
-    return RequestedMasternodeAssets > MASTERNODE_SYNC_LIST;
-}
-
-bool CMasternodeSync::IsWinnersListSynced()
-{
-    return RequestedMasternodeAssets > MASTERNODE_SYNC_MNW;
-}
-
-bool CMasternodeSync::IsSynced()
-{
-    return RequestedMasternodeAssets == MASTERNODE_SYNC_FINISHED;
 }
 
 void CMasternodeSync::Reset()
@@ -150,16 +130,6 @@ void CMasternodeSync::AddedBudgetItem(const uint256& hash)
     }
 }
 
-bool CMasternodeSync::IsBudgetPropEmpty()
-{
-    return sumBudgetItemProp == 0 && countBudgetItemProp > 0;
-}
-
-bool CMasternodeSync::IsBudgetFinEmpty()
-{
-    return sumBudgetItemFin == 0 && countBudgetItemFin > 0;
-}
-
 void CMasternodeSync::GetNextAsset()
 {
     switch (RequestedMasternodeAssets) {
@@ -184,11 +154,6 @@ void CMasternodeSync::GetNextAsset()
     }
     RequestedMasternodeAttempt = 0;
     nAssetSyncStarted = GetTime();
-}
-
-int CMasternodeSync::GetSyncValue()
-{
-    return RequestedMasternodeAssets;
 }
 
 std::string CMasternodeSync::GetSyncStatus()

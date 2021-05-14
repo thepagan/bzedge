@@ -223,19 +223,19 @@ public:
         READWRITE(nLastScanningErrorBlockHeight);
     }
 
-    int64_t SecondsSincePayment();
+    int64_t SecondsSincePayment() const;
 
     bool UpdateFromNewBroadcast(CMasternodeBroadcast& mnb);
 
     void Check(bool forceCheck = false);
 
-    bool IsBroadcastedWithin(int seconds)
+    bool IsBroadcastedWithin(int seconds) const
     {
         LOCK(cs);
         return (GetTime() - sigTime) < seconds;
     }
 
-    bool IsPingedWithin(int seconds, int64_t now = -1)
+    bool IsPingedWithin(int seconds, int64_t now = -1) const
     {
         LOCK(cs);
         return (lastPing == CMasternodePing()) ? false : ((now == -1 ? GetTime() : now) - lastPing.sigTime) < seconds;
@@ -248,7 +248,7 @@ public:
         lastPing = CMasternodePing();
     }
 
-    bool IsEnabled()
+    bool IsEnabled() const
     {
         LOCK(cs);
         return activeState == MASTERNODE_ENABLED;
@@ -275,6 +275,7 @@ public:
         LOCK(cs);
         switch (activeState)
         {
+            case CMasternode::MASTERNODE_PRE_ENABLED : return "PRE-ENABLED";
             case CMasternode::MASTERNODE_ENABLED : return "ENABLED";
             case CMasternode::MASTERNODE_EXPIRED : return "EXPIRED";
             case CMasternode::MASTERNODE_VIN_SPENT : return "VIN_SPENT";
@@ -284,8 +285,8 @@ public:
         }
     }
 
-    int64_t GetLastPaid();
-    bool IsValidNetAddr();
+    int64_t GetLastPaid() const;
+    bool IsValidNetAddr() const { return ChainNameFromCommandLine() == CBaseChainParams::REGTEST || (IsReachable(addr) && addr.IsRoutable()); }
 };
 
 
@@ -321,7 +322,7 @@ public:
         READWRITE(nLastDsq);
     }
 
-    uint256 GetHash()
+    uint256 GetHash() const
     {
         CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
         ss << sigTime;

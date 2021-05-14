@@ -225,7 +225,7 @@ void CMasternode::Check(bool forceCheck)
     activeState = MASTERNODE_ENABLED; // OK
 }
 
-int64_t CMasternode::SecondsSincePayment()
+int64_t CMasternode::SecondsSincePayment() const
 {
     CScript pubkeyScript;
     pubkeyScript = GetScriptForDestination(pubKeyCollateralAddress.GetID());
@@ -243,7 +243,7 @@ int64_t CMasternode::SecondsSincePayment()
     return month + (UintToArith256(hash)).GetCompact(false);
 }
 
-int64_t CMasternode::GetLastPaid()
+int64_t CMasternode::GetLastPaid() const
 {
     CBlockIndex* pindexPrev = chainActive.Tip();
     if (pindexPrev == NULL) return false;
@@ -311,14 +311,6 @@ std::string CMasternode::GetStatus()
     default:
         return "UNKNOWN";
     }
-}
-
-bool CMasternode::IsValidNetAddr()
-{
-    // TODO: regtest is fine with any addresses for now,
-    // should probably be a bit smarter if one day we start to implement tests for this
-    return ChainNameFromCommandLine() == CBaseChainParams::REGTEST ||
-           (IsReachable(addr) && addr.IsRoutable());
 }
 
 CMasternodeBroadcast::CMasternodeBroadcast()

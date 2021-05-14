@@ -70,18 +70,18 @@ public:
     void AddedBudgetItem(const uint256& hash);
     void GetNextAsset();
     std::string GetSyncStatus();
-    int GetSyncValue();
+    int GetSyncValue() const { return RequestedMasternodeAssets; }
     void ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
-    bool IsBudgetFinEmpty();
-    bool IsBudgetPropEmpty();
+    bool IsBudgetFinEmpty() const { return sumBudgetItemFin == 0 && countBudgetItemFin > 0; }
+    bool IsBudgetPropEmpty() const { return sumBudgetItemProp == 0 && countBudgetItemProp > 0; }
 
     void Reset();
     void Process();
-    bool IsFailed();
+    bool IsFailed() const { return RequestedMasternodeAssets == MASTERNODE_SYNC_FAILED; }
     bool IsBlockchainSynced();
-    bool IsMasternodeListSynced();
-    bool IsWinnersListSynced();
-    bool IsSynced();
+    bool IsMasternodeListSynced() const { return RequestedMasternodeAssets > MASTERNODE_SYNC_LIST; }
+    bool IsWinnersListSynced() const { return RequestedMasternodeAssets > MASTERNODE_SYNC_MNW; }
+    bool IsSynced() const { return RequestedMasternodeAssets == MASTERNODE_SYNC_FINISHED; }
     void ClearFulfilledRequest();
 };
 
