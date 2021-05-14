@@ -1620,7 +1620,12 @@ void ThreadOpenConnections()
             static bool done = false;
             if (!done) {
                 LogPrintf("Adding fixed seed nodes as DNS doesn't seem to be available.\n");
-                addrman.Add(convertSeed6(Params().FixedSeeds()), CNetAddr("127.0.0.1"));
+                const std::vector<CAddress> v_fixed_seeds = convertSeed6(Params().FixedSeeds());
+                for (const CAddress& one_seed : v_fixed_seeds)
+                {
+                    LogPrintf("Adding node %s\n", one_seed.ToString());
+                }
+                addrman.Add(v_fixed_seeds, CNetAddr("127.0.0.1"));
                 done = true;
             }
         }
