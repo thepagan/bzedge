@@ -7433,6 +7433,10 @@ bool ProcessMessages(const CChainParams& chainparams, CNode* pfrom)
         catch (const std::ios_base::failure& e)
         {
             pfrom->PushMessage("reject", strCommand, REJECT_MALFORMED, string("error parsing message"));
+
+            LogPrintf("ATTENTION: ProcessMessage caused exception: from %s, strCommand = %s, with size %i\n", pfrom->addr.ToString(), strCommand, vRecv.size());
+            LogPrintf("ATTENTION: ProcessMessage e.what = %s\n", e.what());
+
             if (strstr(e.what(), "end of data"))
             {
                 // Allow exceptions from under-length message on vRecv
