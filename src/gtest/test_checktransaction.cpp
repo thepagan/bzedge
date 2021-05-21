@@ -1000,7 +1000,7 @@ TEST(ChecktransactionTests, OverwinteredContextualCreateTx) {
         1, false, 0, 0);
     // Overwinter activates
     ContextualCreateTxCheck(params, overwinterActivationHeight,
-        OVERWINTER_TX_VERSION, true, OVERWINTER_VERSION_GROUP_ID, overwinterActivationHeight + DEFAULT_PRE_EXPIRY_DELTA);
+        OVERWINTER_TX_VERSION, true, OVERWINTER_VERSION_GROUP_ID, overwinterActivationHeight + DEFAULT_TX_EXPIRY_DELTA);
     // Close to Sapling activation
     ContextualCreateTxCheck(params, saplingActivationHeight - DEFAULT_PRE_EXPIRY_DELTA - 2,
         OVERWINTER_TX_VERSION, true, OVERWINTER_VERSION_GROUP_ID, saplingActivationHeight - 2);
